@@ -1,0 +1,20 @@
+{
+  "name": "ajax-form",
+  "version": "0.0.1",
+  "authors": [
+    "Ray Nicholus"
+  ],
+  "description": "HTML forms on performance-enhancing drugs",
+  "main": "element/*",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.3.3"
+  }
+}
