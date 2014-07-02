@@ -46,7 +46,9 @@
         "console",
         "describe",
         "expect",
+        "FormData",
         "it",
-        "spyOn"
+        "spyOn",
+        "window"
     ]
 }

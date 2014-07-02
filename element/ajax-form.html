@@ -1,0 +1,25 @@
+<!--
+/**
+ * Adds some more power and features to traditional HTML forms.  Also allows
+ * the <file-input> custom element to be submitted along with other traditional
+ * form elements.
+ *
+ * More features are likely to be added as requested.
+ */
+-->
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/core-ajax/core-ajax.html">
+
+<polymer-element name="ajax-form" extends="form" attributes="action method">
+
+    <template>
+
+        <content></content>
+
+        <core-ajax url={{action}} method={{acceptableMethod}}></core-ajax>
+        
+    </template>
+    
+    <script src="ajax-form.js"></script>
+
+</polymer-element>

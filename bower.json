@@ -15,6 +15,7 @@
     "tests"
   ],
   "dependencies": {
+    "core-ajax": "Polymer/core-ajax#~0.3.3",
     "polymer": "Polymer/polymer#~0.3.3"
   }
 }
