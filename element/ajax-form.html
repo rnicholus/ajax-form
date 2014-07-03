@@ -10,16 +10,16 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/core-ajax/core-ajax.html">
 
-<polymer-element name="ajax-form" extends="form" attributes="action method">
+<polymer-element name="ajax-form" extends="form" attributes="action headers method">
+
+    <script src="ajax-form.js"></script>
 
     <template>
 
         <content></content>
 
-        <core-ajax url={{action}} method={{acceptableMethod}}></core-ajax>
-        
+        <core-ajax url={{action}} headers={{headers}} method={{acceptableMethod}}></core-ajax>
+
     </template>
-    
-    <script src="ajax-form.js"></script>
 
 </polymer-element>

@@ -1,9 +1,9 @@
 (function() {
-    var getValidMethod = function() {
-        if (this.method) {
-            var proposedMethod = this.method.toLowerCase();
+    var getValidMethod = function(method) {
+        if (method) {
+            var proposedMethod = method.toLowerCase();
 
-            if (proposedMethod === 'put' || 'post') {
+            if (['put', 'post'].indexOf(proposedMethod) >= 0) {
                 return proposedMethod;
             }
         }
@@ -23,8 +23,16 @@
     /* globals Polymer */
     /* jshint newcap: false */
     Polymer('ajax-form', {
+        acceptableMethod: 'post', //just a default value
+        
         domReady: function() {
-            this.acceptableMethod = getValidMethod.call(this);
+            // The method attribute set on the light-DOM `<form>` 
+            // can't seem to be access as a property of this element, 
+            // unlike other attributes.  Perhaps due to the fact that 
+            // we are extending a form and a "natural" form also has a 
+            // method attr?  Need to look into this further.
+            this.acceptableMethod = getValidMethod(this.getAttribute('method'));
+            
             if (!this.acceptableMethod) {
                 throw new Error('Invalid method!');
             }

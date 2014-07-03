@@ -45,6 +45,7 @@
         "beforeEach",
         "console",
         "describe",
+        "document",
         "expect",
         "FormData",
         "it",
