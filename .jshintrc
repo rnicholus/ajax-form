@@ -43,12 +43,14 @@
     "predef": [
         "afterEach",
         "beforeEach",
+        "clearTimeout",
         "console",
         "describe",
         "document",
         "expect",
         "FormData",
         "it",
+        "setTimeout",
         "spyOn",
         "window"
     ]
