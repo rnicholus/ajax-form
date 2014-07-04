@@ -18,6 +18,10 @@
         // The browser must set this with the proper multipart boundary ID.
         sender.contentType = null;
 
+        if (this.hasAttribute('cookies') && this.getAttribute('cookies').toLowerCase().trim() !== 'false') {
+            sender.withCredentials = true;            
+        }
+
         sender.body = new FormData(window.unwrap(form));
         sender.go();
     },
@@ -63,7 +67,7 @@
             if (!this.acceptableMethod) {
                 throw new Error('Invalid method!');
             }
-
+            
             watchForInvalidFields.call(this, this);
 
             this.addEventListener('submit', function(event) {
