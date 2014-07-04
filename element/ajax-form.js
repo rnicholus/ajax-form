@@ -11,6 +11,30 @@
         }
     },
 
+    interceptSubmit = function() {
+        this.addEventListener('submit', function(event) {
+            // Stop form submission.  Believe it or not, 
+            // both of these are required for some reason, 
+            // and returning false doesn't seem to reliably work.
+            event.preventDefault();
+            event.stopPropagation();
+
+            // respect any field validation attributes
+            // NOTE: Safari doesn't have any visual indications when submit is blocked
+            if (this.checkValidity()) {
+                sendForm.call(this, this);
+            }
+        }.bind(this));
+    },    
+
+    listenForAjaxComplete = function() {
+        var sender = this.shadowRoot.querySelector('core-ajax');
+        
+        sender.addEventListener('core-complete', function(event) {
+             this.fire('submitted', event.detail.xhr);
+        }.bind(this));
+    },
+    
     sendForm = function(form) {
         var sender = this.shadowRoot.querySelector('core-ajax');
 
@@ -54,7 +78,7 @@
     /* globals Polymer */
     /* jshint newcap: false */
     Polymer('ajax-form', {
-        acceptableMethod: 'post', //just a default value
+        acceptableMethod: 'post',
     
         cookies: false,
 
@@ -72,19 +96,9 @@
             
             watchForInvalidFields.call(this, this);
 
-            this.addEventListener('submit', function(event) {
-                // Stop form submission.  Believe it or not, 
-                // both of these are required for some reason, 
-                // and returning false doesn't seem to reliably work.
-                event.preventDefault();
-                event.stopPropagation();
-
-                // respect any field validation attributes
-                // NOTE: Safari doesn't have any visual indications when submit is blocked
-                if (this.checkValidity()) {
-                    sendForm.call(this, this);
-                }
-            }.bind(this));
+            interceptSubmit.call(this);
+            
+            listenForAjaxComplete.call(this);
         }
     });
 }());

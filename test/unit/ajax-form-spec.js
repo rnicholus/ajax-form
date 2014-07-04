@@ -5,6 +5,12 @@ describe('ajax-form custom element tests', function() {
     });
 
     describe('method normalization', function() {
+        beforeEach(function() {
+            var ajaxContainer = document.createElement('div');            
+            ajaxContainer.appendChild(document.createElement('core-ajax'));
+            this.form.shadowRoot = ajaxContainer;
+        });
+        
         it('throws an error if the method is not "post" or "put"', function() {
             expect(polymerInstance.spec.domReady.bind(this.form)).toThrow();
 
@@ -35,6 +41,10 @@ describe('ajax-form custom element tests', function() {
             
             this.form.setAttribute('method', 'post');
             this.form.fire = jasmine.createSpy('fire');
+            
+            var ajaxContainer = document.createElement('div');            
+            ajaxContainer.appendChild(document.createElement('core-ajax'));
+            this.form.shadowRoot = ajaxContainer;
         });
         
         afterEach(function() {
