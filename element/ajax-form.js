@@ -18,7 +18,7 @@
         // The browser must set this with the proper multipart boundary ID.
         sender.contentType = null;
 
-        if (this.hasAttribute('cookies') && this.getAttribute('cookies').toLowerCase().trim() !== 'false') {
+        if (this.cookies) {
             sender.withCredentials = true;            
         }
 
@@ -55,6 +55,8 @@
     /* jshint newcap: false */
     Polymer('ajax-form', {
         acceptableMethod: 'post', //just a default value
+    
+        cookies: false,
 
         domReady: function() {
             // The method attribute set on the light-DOM `<form>`
