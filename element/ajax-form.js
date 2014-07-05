@@ -22,6 +22,7 @@
             // respect any field validation attributes
             // NOTE: Safari doesn't have any visual indications when submit is blocked
             if (this.checkValidity()) {
+                this.fire('submitting');
                 sendForm.call(this, this);
             }
         }.bind(this));
