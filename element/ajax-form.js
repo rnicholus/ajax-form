@@ -36,7 +36,21 @@
     },
     
     sendForm = function(form) {
-        var sender = this.shadowRoot.querySelector('core-ajax');
+        var sender = this.shadowRoot.querySelector('core-ajax'),
+            formData = new FormData(window.unwrap(form)),
+            fileInput = form.querySelector('file-input');
+
+        if (fileInput) {
+            var fileInputName = fileInput.getAttribute('name') || 'files';
+            
+            if (fileInput.files.length > 1) {
+                fileInputName += '[]';
+            }
+            
+            fileInput.files.forEach(function(file) {
+                formData.append(fileInputName, file);    
+            });
+        }
 
         // make sure Polymer/core-ajax doesn't touch the Content-Type.
         // The browser must set this with the proper multipart boundary ID.
@@ -46,7 +60,7 @@
             sender.withCredentials = true;            
         }
 
-        sender.body = new FormData(window.unwrap(form));
+        sender.body = formData;
         sender.go();
     },
     
