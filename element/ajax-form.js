@@ -93,8 +93,6 @@
     /* globals Polymer */
     /* jshint newcap: false */
     Polymer('ajax-form', {
-        acceptableMethod: 'post',
-    
         cookies: false,
 
         domReady: function() {
