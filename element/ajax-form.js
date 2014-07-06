@@ -71,9 +71,12 @@
             invalidFields = [],
             timer = null;
         
-        for (var i = 0; i < fields.length; i++) {
-            /* jshint loopfunc:true */
-            fields[i].addEventListener('invalid', function() {
+        fields = Array.prototype.slice.call(fields);
+        fields = fields.concat(Array.prototype.slice.call(form.getElementsByTagName('select')));
+        fields = fields.concat(Array.prototype.slice.call(form.getElementsByTagName('textarea')));
+        
+        fields.forEach(function(field) {
+            field.addEventListener('invalid', function() {
                 invalidFields.push(this);
 
                 // In case another element is invalid and the event 
@@ -86,7 +89,7 @@
                     console.error('Form submission blocked - constraints violation.');
                 }, 10);
             });
-        }
+        });
         
     };
 
