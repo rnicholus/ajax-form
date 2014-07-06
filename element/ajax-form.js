@@ -100,10 +100,11 @@
 
         domReady: function() {
             // The method attribute set on the light-DOM `<form>`
-            // can't seem to be access as a property of this element,
+            // can't seem to be accessed as a property of this element,
             // unlike other attributes.  Perhaps due to the fact that
             // we are extending a form and a "natural" form also has a
-            // method attr?  Need to look into this further.
+            // method attr?  Perhaps something special about this attr?  
+            // Need to look into this further.
             this.acceptableMethod = getValidMethod(this.getAttribute('method'));
 
             if (!this.acceptableMethod) {
