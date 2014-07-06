@@ -29,7 +29,7 @@
     },    
 
     listenForAjaxComplete = function() {
-        var sender = this.shadowRoot.querySelector('core-ajax');
+        var sender = this.shadowRoot.getElementsByTagName('core-ajax')[0];
         
         sender.addEventListener('core-complete', function(event) {
              this.fire('submitted', event.detail.xhr);
@@ -37,7 +37,7 @@
     },
     
     sendForm = function(form) {
-        var sender = this.shadowRoot.querySelector('core-ajax'),
+        var sender = this.shadowRoot.getElementsByTagName('core-ajax')[0],
             formData = new FormData(window.unwrap(form)),
             fileInput = form.querySelector('file-input');
 
@@ -67,7 +67,7 @@
     
     watchForInvalidFields = function(form) {
         var customEl = this,
-            fields = form.children,
+            fields = form.getElementsByTagName('input'),
             invalidFields = [],
             timer = null;
         
