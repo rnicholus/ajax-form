@@ -136,6 +136,9 @@ customizable validation, and provides an improved API?  Check out the [`<file-in
 form fields.  Just include your `<file-input>` element as a child of your `<form is="ajax-form">`.  
 That's it!
 
+As an added benefit, ONLY valid files (not those that have failed any validation rules setup in your `<file-input>` element) 
+will be sent along with the request!
+
 ### Handling the request server-side
 All forms will be sent as multipart encoded requests.  If you include a `<file-input>`
 field, files will be sent with a name according to the `name` attribute on the `<file-input>`.
