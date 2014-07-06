@@ -1,15 +1,87 @@
 <!DOCTYPE html>
 <html>
-
     <head>
-        <script src='../bower_components/platform/platform.js'></script>
-        <link rel='import' href='../element/ajax-form.html'>
+        <script src="../bower_components/platform/platform.js"></script>
+        <link rel="import" href="../element/ajax-form.html">
+        
+        <style>
+            .hidden {
+                display: none;
+            }
+    
+            @-webkit-keyframes fadein {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @-moz-keyframes fadein {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes fadein {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            #pleaseWait {
+                text-align: center;
+                -webkit-animation: fadein 1s ease-in alternate infinite;
+                -moz-animation: fadein 1s ease-in alternate infinite;
+                animation: fadein 1s ease-in alternate infinite;
+            }
+        </style>
     </head>
 
     <body>
-        <form is='ajax-form' action="test" method="put">
-            <input type="text" name="foo">
+        <h1 id="pleaseWait" class="hidden">Sending your data...</h1>
+        
+        <form is="ajax-form" action="test" method="post">
+            <div>
+                <label>Full Name: <input type="text" name="name" required></label>
+            </div>
+            
+            <div>
+                <label>Address: <input type="text" name="address" required></label>
+            </div>
+            
+            <div>
+                <label>Favorie color: <input type="text" name="color"></label>
+            </div>
+
+            <div>
+                <b>Receive periodic email updates from us?</b>
+                <input type="radio" name="emailCommunication" value="yes" checked>yes
+                <input type="radio" name="emailCommunication" value="no">no
+            </div>
+            
             <input type="submit">
         </form>
     </body>
+    
+    <script>
+        var form = document.getElementsByTagName('form')[0];
+        
+        form.addEventListener('invalid', function() {
+            alert('Some form fields are invalid!');
+        });
+        
+        form.addEventListener('submitting', function() {
+            document.getElementById('pleaseWait').className = '';
+            this.className = 'hidden';
+        });
+        
+        form.addEventListener('submitted', function(event) {
+            document.getElementById('pleaseWait').className = 'hidden';
+            this.className = '';
+            
+            if (event.detail.status > 299) {
+                alert('Submission failed!  Please try again later.')
+            }
+            else {
+                form.innerHTML = 'Thanks!  Your choices have been submitted!';
+            }
+        });
+    </script>
+
 </html>
