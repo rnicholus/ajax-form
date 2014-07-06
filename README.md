@@ -119,7 +119,7 @@ displayed to the user.  Some browsers (not Safari) will also outline the offendi
 
 If the form is able to be submitted and passes validation checks, a "submitted" event
 will be triggered on the form, the form will be hidden, and a large "Sending your data..."
-message will appear and fade in and out conitnuously until the form has been submitted.
+message will appear and fade in and out continuously until the form has been submitted.
 
 Once the server has processed and responded to the form submit, a "submitted" event
 will be triggered on the form and the "Sending your data..." message will disapper.
