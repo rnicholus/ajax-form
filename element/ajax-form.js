@@ -39,7 +39,7 @@
     sendForm = function(form) {
         var sender = this.shadowRoot.getElementsByTagName('core-ajax')[0],
             formData = new FormData(window.unwrap(form)),
-            fileInput = form.querySelector('file-input');
+            fileInput = form.getElementsByTagName('file-input')[0];
 
         if (fileInput) {
             var fileInputName = fileInput.getAttribute('name') || 'files';
