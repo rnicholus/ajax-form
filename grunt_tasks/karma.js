@@ -8,8 +8,7 @@ module.exports = {
 
         files : [
             'bower_components/bind-polyfill/index.js',
-            'test/unit/polymer-mock.js',
-            'element/*.js',
+            'ajax-form.js',
             'test/unit/*-spec.js'
         ],
 

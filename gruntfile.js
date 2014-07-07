@@ -9,7 +9,7 @@ module.exports = function(grunt) {
         jshint: config('jshint'),
         karma: config('karma'),
         watch: {
-            files: ['element/*', 'grunt_tasks/*.js', 'test/unit/*'],
+            files: ['ajax-form.js', 'grunt_tasks/*.js', 'test/unit/*'],
             tasks: ['jshint', 'karma:dev']
         }
     });

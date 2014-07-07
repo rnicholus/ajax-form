@@ -1,4 +1,4 @@
-/* globals Event, jasmine, polymerInstance */
+/* globals Event, jasmine, ajaxForm */
 describe('ajax-form custom element tests', function() {
     beforeEach(function() {
         this.form = document.createElement('form');
@@ -12,17 +12,17 @@ describe('ajax-form custom element tests', function() {
         });
         
         it('throws an error if the method is not "post" or "put"', function() {
-            expect(polymerInstance.spec.domReady.bind(this.form)).toThrow();
+            expect(ajaxForm.domReady.bind(this.form)).toThrow();
 
             this.form.setAttribute('method', 'get');
-            expect(polymerInstance.spec.domReady.bind(this.form)).toThrow();
+            expect(ajaxForm.domReady.bind(this.form)).toThrow();
         });
 
         it('adds a listener to squelch submit events if the method is "post"', function() {
             spyOn(this.form, 'addEventListener');
 
             this.form.setAttribute('method', 'post');
-            polymerInstance.spec.domReady.call(this.form);
+            ajaxForm.domReady.call(this.form);
             expect(this.form.addEventListener.calls.mostRecent().args[0]).toBe('submit');
         });
 
@@ -30,7 +30,7 @@ describe('ajax-form custom element tests', function() {
             spyOn(this.form, 'addEventListener');
 
             this.form.setAttribute('method', 'put');
-            polymerInstance.spec.domReady.call(this.form);
+            ajaxForm.domReady.call(this.form);
             expect(this.form.addEventListener.calls.mostRecent().args[0]).toBe('submit');
         });
     });
@@ -64,7 +64,7 @@ describe('ajax-form custom element tests', function() {
             this.form.appendChild(textInput2);
             this.form.appendChild(textInput3);
 
-            polymerInstance.spec.domReady.call(this.form);
+           ajaxForm.domReady.call(this.form);
             
             var inputInvalidEvent = document.createEvent('Event');
             inputInvalidEvent.initEvent('invalid', true, true);
