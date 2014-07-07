@@ -105,40 +105,47 @@
 </body>
 
     <script>
-        var form = document.getElementsByTagName('form')[0],
-            content = document.getElementById('content');
-        
-        form.addEventListener('invalid', function() {
-            alertify.error('Some form fields are invalid!');
-        });
-        
-        form.addEventListener('submitting', function() {
-            document.getElementById('pleaseWait').className = '';
-            content.className = 'hidden';
-        });
-        
-        form.addEventListener('submitted', function(event) {
-            document.getElementById('pleaseWait').className = 'hidden';
-            content.className = '';
+        (function() {
+            var form = document.getElementsByTagName('form')[0],
+                content = document.getElementById('content');
             
-            if (event.detail.status > 299) {
-                alertify.error('Submission failed!  Please try again.')
-            }
-            else {
-                content.innerHTML = 'Thanks!  Your choices have been submitted!';
-            }
-        });
+            form.addEventListener('invalid', function() {
+                alertify.error('Some form fields are invalid!');
+            });
+            
+            form.addEventListener('submitting', function() {
+                document.getElementById('pleaseWait').className = '';
+                content.className = 'hidden';
+            });
+            
+            form.addEventListener('submitted', function(event) {
+                document.getElementById('pleaseWait').className = 'hidden';
+                content.className = '';
+                
+                if (event.detail.status > 299) {
+                    alertify.error('Submission failed!  Please try again.')
+                }
+                else {
+                    content.innerHTML = 'Thanks!  Your choices have been submitted!';
+                }
+            });
+        }());
     </script>
     
     <script>
-        sinon.FakeXMLHttpRequest.useFilters = true;
-        sinon.FakeXMLHttpRequest.addFilter(function (method, url) {
-            return !(/test$/).test(url);
-        });
-        var server = sinon.fakeServer.create();
-        server.respondWith([200, {}, '']);
-        server.autoRespond = true;
-        server.autoRespondAfter = 5000;
+        // This code is only used to mock/intercept HTTP requests associated 
+        // with the form submit.  This is neended since the demo doesn't have 
+        // a server to handle these requests.
+        (function() {
+            sinon.FakeXMLHttpRequest.useFilters = true;
+            sinon.FakeXMLHttpRequest.addFilter(function (method, url) {
+                return !(/test$/).test(url);
+            });
+            var server = sinon.fakeServer.create();
+            server.respondWith([200, {}, '']);
+            server.autoRespond = true;
+            server.autoRespondAfter = 5000;
+        }());
     </script>
 
 </html>
