@@ -1,0 +1,144 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <title>ajax-form demo</title>
+
+    <script src="../platform/platform.js"></script>
+    <link rel="import" href="ajax-form.html">
+
+    <!--For nicer-looking dialogs - only used by the demo-->
+    <script src="demo_resources/alertify.min.js"></script>
+    <link rel="stylesheet" href="demo_resources/alertify.core.css" />
+    <link rel="stylesheet" href="demo_resources/alertify.default.css" />
+
+    <!--This is only used for mocking the HTTP requests since this demo does not have a server to handle requests.-->
+    <script src="demo_resources/sinon-server-1.10.2.js"></script>
+
+        <style>
+            .hidden {
+                display: none;
+            }
+    
+            @-webkit-keyframes fadein {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @-moz-keyframes fadein {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes fadein {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            #pleaseWait {
+                text-align: center;
+                -webkit-animation: fadein 1s ease-in alternate infinite;
+                -moz-animation: fadein 1s ease-in alternate infinite;
+                animation: fadein 1s ease-in alternate infinite;
+            }
+        </style>
+
+</head>
+
+<body unresolved>
+
+    <h1><code>ajax-form</code> in action:</h1>
+
+        <p>See the code for this demo in the <a href="https://github.com/garstasio/ajax-form/tree/gh-pages/components/ajax-form/demo.html">demo.html file</a> 
+        of the <a href="https://github.com/garstasio/ajax-form">ajax-form GitHub repository</a>.</p>
+
+        <h1 id="pleaseWait" class="hidden">Sending your data...</h1>
+        
+        <div id="content">
+            <form is="ajax-form" action="test" method="post">
+                <div>
+                    <label>Full Name: <input type="text" name="name" required></label>
+                </div>
+                
+                <div>
+                    <label>Address: <input type="text" name="address" required></label>
+                </div>
+                
+                <div>
+                    <label>Favorie color: <input type="text" name="color"></label>
+                </div>
+    
+                <div>
+                    <b>Receive periodic email updates from us?</b>
+                    <input type="radio" name="emailCommunication" value="yes" checked>yes
+                    <input type="radio" name="emailCommunication" value="no">no
+                </div>
+                
+                <input type="submit">
+            </form>
+            
+            <p>The above code includes a simple HTML form that identifies itself as an `ajax-form`.
+            As you can see, there are some standard form elements included that collect the user's
+            name, address, favorite color, and ask them if they'd like to be added to a mailing list.
+            The name and address fields are required for submission.</p>
+    
+            <p>The form will be submitted as a multipart encoded POST request to the "test" endpoint.</p>
+    
+            <p>If required fields are not filled out when the user clicks "submit", an "invalid" event will
+            be triggered on the form (passing the invalid elements as event detail), and an alert will be
+            displayed to the user.  Some browsers (not Safari) will also outline the offending fields in red.</p>
+            
+            <p>If the form is able to be submitted and passes validation checks, a "submitted" event
+            will be triggered on the form, the form will be hidden, and a large "Sending your data..."
+            message will appear and fade in and out continuously until the form has been submitted.</p>
+            
+            <p>Once the server has processed and responded to the form submit, a "submitted" event
+            will be triggered on the form and the "Sending your data..." message will disapper.
+            If submission was successful, a message will replace the form.  If a problem
+            occurred, the form will re-appear and an alert will be displayed to the user.
+            In each case, the underlying `XMLHttpRequest` instance will be passed to the
+            "submitted" event handler as event detail.</p>
+            
+        </div>
+        
+</body>
+
+    <script>
+        var form = document.getElementsByTagName('form')[0],
+            content = document.getElementById('content');
+        
+        form.addEventListener('invalid', function() {
+            alertify.error('Some form fields are invalid!');
+        });
+        
+        form.addEventListener('submitting', function() {
+            document.getElementById('pleaseWait').className = '';
+            content.className = 'hidden';
+        });
+        
+        form.addEventListener('submitted', function(event) {
+            document.getElementById('pleaseWait').className = 'hidden';
+            content.className = '';
+            
+            if (event.detail.status > 299) {
+                alertify.error('Submission failed!  Please try again.')
+            }
+            else {
+                content.innerHTML = 'Thanks!  Your choices have been submitted!';
+            }
+        });
+    </script>
+    
+    <script>
+        sinon.FakeXMLHttpRequest.useFilters = true;
+        sinon.FakeXMLHttpRequest.addFilter(function (method, url) {
+            return !(/test$/).test(url);
+        });
+        var server = sinon.fakeServer.create();
+        server.respondWith([200, {}, '']);
+        server.autoRespond = true;
+        server.autoRespondAfter = 5000;
+    </script>
+
+</html>
