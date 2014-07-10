@@ -78,13 +78,18 @@
                 <input type="submit">
             </form>
             
+            <h3>Summary</h3>
             <p>The above code includes a simple HTML form that identifies itself as an `ajax-form`.
             As you can see, there are some standard form elements included that collect the user's
             name, address, favorite color, and ask them if they'd like to be added to a mailing list.
             The name and address fields are required for submission.</p>
     
+    
+            <h3>Server Handling</h3>
             <p>The form will be submitted as a multipart encoded POST request to the "test" endpoint.</p>
     
+    
+            <h3>Validation</h3>
             <p>If required fields are not filled out when the user clicks "submit", an "invalid" event will
             be triggered on the form (passing the invalid elements as event detail), and an alert will be
             displayed to the user.  Some browsers (not Safari) will also outline the offending fields in red.</p>
@@ -92,14 +97,13 @@
             <p>If the form is able to be submitted and passes validation checks, a "submitted" event
             will be triggered on the form, the form will be hidden, and a large "Sending your data..."
             message will appear and fade in and out continuously until the form has been submitted.</p>
-            
+    
             <p>Once the server has processed and responded to the form submit, a "submitted" event
             will be triggered on the form and the "Sending your data..." message will disapper.
             If submission was successful, a message will replace the form.  If a problem
             occurred, the form will re-appear and an alert will be displayed to the user.
             In each case, the underlying `XMLHttpRequest` instance will be passed to the
             "submitted" event handler as event detail.</p>
-            
         </div>
         
 </body>
