@@ -95,10 +95,9 @@
     },
 
     parseForm = function(form) {
-
-        var formObj = {};
-
-        var fields = form.getElementsByTagName('input'),
+        var formObj = {},
+            fields = form.getElementsByTagName('input');
+            
         fields = Array.prototype.slice.call(fields);
         fields = fields.concat(Array.prototype.slice.call(form.getElementsByTagName('select')));
         fields = fields.concat(Array.prototype.slice.call(form.getElementsByTagName('textarea')));
@@ -108,7 +107,6 @@
                 val = parseInputElementValue(field);
 
             if (key && val) {
-                // @TODO: check if `key` is an object (embedded form)?
                 formObj[key] = val;
             }
 
