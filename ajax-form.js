@@ -5,7 +5,7 @@
 
             // PUT & POST are the only acceptable methods for now.
             // GET requires us to be able to convert form fields into a URL-encoded string.
-            if (['put', 'post'].indexOf(proposedMethod) >= 0) {
+            if (['put', 'post', 'get'].indexOf(proposedMethod) >= 0) {
                 return proposedMethod;
             }
         }
@@ -23,7 +23,12 @@
             // NOTE: Safari doesn't have any visual indications when submit is blocked
             if (this.checkValidity()) {
                 this.fire('submitting');
-                sendForm.call(this, this);
+                if ('post' === this.acceptableMethod) {
+                    sendMultipartForm.call(this, this);
+                }
+                if ('get' === this.acceptableMethod) {
+                    sendUrlencodedForm.call(this, this);
+                }
             }
         }.bind(this));
     },
@@ -36,9 +41,12 @@
         }.bind(this));
     },
 
-    sendForm = function(form) {
-        var sender = this.shadowRoot.getElementsByTagName('core-ajax')[0],
-            formData = new FormData(window.unwrap(form)),
+    // @TODO: should these FormData parse methods be exposed as events
+    // if, say, someone wanted to filter or transform the data in a form
+    // (i.e., radio from yes/no to true/false, or textarea from markdown to
+    // html)?
+    parseFormData = function(form) {
+        var formData = new FormData(window.unwrap(form)),
             fileInput = form.getElementsByTagName('file-input')[0];
 
         if (fileInput) {
@@ -53,6 +61,81 @@
             });
         }
 
+        return formData;
+
+    },
+
+    parseInputElementValue = function(element){
+
+        // @TODO: validate in the 'other' browsers
+        var value;
+        if (element.type === 'submit') {
+            // hmm...
+            return;
+        }
+        else if (element.type === 'text') {
+            value = element.value;
+        } else if (element.type === 'radio') {
+            if (element.checked === true) {
+                value = element.value;
+            }
+
+        }
+
+        return value;
+
+    },
+
+    parseInputElementName = function(element) {
+        // @TODO: is this needed? look into ways browsers parse input
+        // element names
+        var name;
+        name = element.name;
+        return name;
+    },
+
+    parseForm = function(form) {
+
+        var formObj = {};
+
+        var fields = form.getElementsByTagName('input'),
+        fields = Array.prototype.slice.call(fields);
+        fields = fields.concat(Array.prototype.slice.call(form.getElementsByTagName('select')));
+        fields = fields.concat(Array.prototype.slice.call(form.getElementsByTagName('textarea')));
+
+        fields.forEach(function(field){
+            var key = parseInputElementName(field),
+                val = parseInputElementValue(field);
+
+            if (key && val) {
+                // @TODO: check if `key` is an object (embedded form)?
+                formObj[key] = val;
+            }
+
+        });
+
+        return formObj;
+    },
+
+    sendUrlencodedForm = function(form){
+        var sender = this.shadowRoot.getElementsByTagName('core-ajax')[0],
+            data = parseForm(form);
+
+        //sender.contentType = 'application/x-www-form-urlencoded';
+        if (this.cookies) {
+            sender.withCredentials = true;
+        }
+
+        sender.method = 'GET';
+        // @TODO: does core-ajax urlencode our form for us?
+        sender.params = data;
+        sender.go();
+    },
+
+    sendMultipartForm = function(form) {
+        var sender = this.shadowRoot.getElementsByTagName('core-ajax')[0],
+            data = parseFormData(form);
+
         // make sure Polymer/core-ajax doesn't touch the Content-Type.
         // The browser must set this with the proper multipart boundary ID.
         sender.contentType = null;
@@ -61,7 +144,7 @@
             sender.withCredentials = true;
         }
 
-        sender.body = formData;
+        sender.body = data;
         sender.go();
     },
 
