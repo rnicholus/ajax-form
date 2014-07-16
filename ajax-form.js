@@ -23,11 +23,16 @@
             // NOTE: Safari doesn't have any visual indications when submit is blocked
             if (this.checkValidity()) {
                 this.fire('submitting');
-                if ('post' === this.acceptableMethod) {
-                    sendMultipartForm.call(this, this);
-                }
-                if ('get' === this.acceptableMethod) {
+                if ('application/x-www-form-urlencoded' === this.enctype) {
                     sendUrlencodedForm.call(this, this);
+                }
+                else {
+                    if ('post' === this.acceptableMethod) {
+                        sendMultipartForm.call(this, this);
+                    }
+                    else if ('get' === this.acceptableMethod) {
+                        sendUrlencodedForm.call(this, this);
+                    }
                 }
             }
         }.bind(this));
