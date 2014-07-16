@@ -238,6 +238,10 @@
         return formObj;
     },
 
+    /**
+     * Send a url-encoded `HTMLFormElement` in the URL query string.
+     * @param HTMLFormElement form
+     */
     sendUrlencodedForm = function(form){
         var sender = this.shadowRoot.getElementsByTagName('core-ajax')[0],
             data = parseForm(form);
@@ -253,6 +257,10 @@
         sender.go();
     },
 
+    /**
+     * Send a multipart-encoded `HTMLFormElement` in the request body.
+     * @param HTMLFormElement form
+     */
     sendMultipartForm = function(form) {
         var sender = this.shadowRoot.getElementsByTagName('core-ajax')[0],
             data = parseFormData(form);
