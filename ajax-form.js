@@ -65,28 +65,141 @@
 
     },
 
-    parseInputElementValue = function(element){
-
-        // @TODO: validate in the 'other' browsers
+    /**
+     * Parse an `HTMLRadioElement`'s value, returning the value iff
+     * the element has a present `checked` attribute.
+     *
+     * @TODO: Grouped radio elements?
+     *
+     * @param HTMLRadioElement element
+     * @return mixed The element's value
+     */
+    parseRadioElementValue = function(element) {
         var value;
-        if (element.type === 'submit') {
-            // hmm...
-            return;
-        }
-        else if (element.type === 'text') {
+        if (element.checked === true) {
             value = element.value;
-        } else if (element.type === 'radio') {
-            if (element.checked === true) {
-                value = element.value;
-            }
-
         }
-
         return value;
 
     },
 
-    parseInputElementName = function(element) {
+    /**
+     * Parse an `HTMLOptionElement`'s value, returning the value iff
+     * the element has a present `selected` attribute.
+     * @param HTMLOptionElement element
+     * @return mixed The element's value
+     */
+    parseSelectOptionElementValue = function(element) {
+        var elementValue;
+        if (element.selected === true){
+            elementValue = element.value;
+        }
+        return elementValue;
+    },
+
+    /**
+     * Parse an `HTMLOptGroupElement` return the `HTMLOptionElement` that
+     * has a `checked` attribute.
+     * @param HTMLOptGroupElement element
+     * @return mixed The element's value
+     */
+    parseSelectOptgroupElementValue = function(element) {
+        var elementValue;
+        Array.prototype.forEach.call(element.options, function(optionElement){
+            var tempElementValue = parseSelectOptionElementValue(optionElement);
+            if (tempElementValue){
+                elementValue = tempElementValue;
+            }
+        });
+        return elementValue;
+    },
+
+    /**
+     * Parse an `HTMLSelectElement`'s value.
+     *
+     * @TODO loop through <option> elements and find a true one
+     * @TODO: ensure 'multiple' attribute is obeyed
+     *
+     * @param HTMLSelectElement element
+     * @return mixed The element's value
+     */
+    parseSelectElementValue = function(element) {
+        var elementValue;
+
+        // @TODO: not exactly cross browser
+        Array.prototype.forEach.call(element.options, function(optionElement){
+            var tempElementValue;
+            if (element.tagName.toLowerCase() === 'optgroup') {
+                tempElementValue = parseSelectOptionElementValue(optionElement);
+                tempElementValue = parseSelectOptionElementValue(optionElement);
+                if (tempElementValue){
+                    elementValue = tempElementValue;
+                }
+            } else {
+                tempElementValue = parseSelectOptionElementValue(optionElement);
+                if (tempElementValue){
+                    elementValue = tempElementValue;
+                }
+            }
+        });
+
+        return elementValue;
+    },
+
+    /**
+     * Parse an `HTMLInputElement`'s value.
+     * @param HTMLInputElement element
+     * @return mixed The element's value
+     */
+    parseInputElementValue = function(element){
+        var elementValue,
+            elementType = element.type;
+
+        if (element.disabled === true ||
+            ['submit', 'reset', 'button', 'image'].indexOf(elementType) !== -1) {
+             // do nothing for these button types
+        }
+        else if (elementType === 'radio') {
+            elementValue = parseRadioElementValue(element);
+        } else {
+            elementValue = element.value;
+        }
+
+        return elementValue;
+    },
+
+    /**
+     * Return the value of some `HTMLElement`s  value attribute if possible.
+     * @param HTMLElement element
+     * @return mixed The element's value attribute
+     */
+    parseElementValue = function(element){
+
+        // @TODO: validate in the 'other' browsers
+        var elementValue,
+            elementTag = element.tagName.toLowerCase();
+
+        if (elementTag === 'input') {
+            elementValue = parseInputElementValue(element);
+        }
+        else if (elementTag === 'textarea'){
+            elementValue = element.value;
+        }
+        //else if(/select*/.exec(elementTag)) {
+        else if (elementTag === 'select') {
+             elementValue = parseSelectElementValue(element);
+        }
+
+        return elementValue;
+
+    },
+
+    /**
+     * Return an `HTMLElement`'s `name` attribute
+     * @param HTMLElement element
+     * @return String The element's name attribute
+     */
+    parseElementName = function(element) {
         // @TODO: is this needed? look into ways browsers parse input
         // element names
         var name;
@@ -94,17 +207,22 @@
         return name;
     },
 
+    /**
+     * Parse an `HTMLFormElement` into key value pairs
+     * @param HTMLFormElement form
+     * @return Object key, value pairs representing the html form
+     */
     parseForm = function(form) {
         var formObj = {},
-            fields = form.getElementsByTagName('input');
-            
-        fields = Array.prototype.slice.call(fields);
-        fields = fields.concat(Array.prototype.slice.call(form.getElementsByTagName('select')));
-        fields = fields.concat(Array.prototype.slice.call(form.getElementsByTagName('textarea')));
+            formElements = form.getElementsByTagName('input');
 
-        fields.forEach(function(field){
-            var key = parseInputElementName(field),
-                val = parseInputElementValue(field);
+        formElements = Array.prototype.slice.call(formElements);
+        formElements = formElements.concat(Array.prototype.slice.call(form.getElementsByTagName('select')));
+        formElements = formElements.concat(Array.prototype.slice.call(form.getElementsByTagName('textarea')));
+
+        formElements.forEach(function(formElement){
+            var key = parseElementName(formElement),
+                val = parseElementValue(formElement);
 
             if (key && val) {
                 formObj[key] = val;
