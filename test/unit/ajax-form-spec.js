@@ -65,17 +65,54 @@ describe('ajax-form custom element tests', function() {
             this.form.appendChild(textInput3);
 
            ajaxForm.domReady.call(this.form);
-            
+
             var inputInvalidEvent = document.createEvent('Event');
             inputInvalidEvent.initEvent('invalid', true, true);
-            
+
             textInput1.dispatchEvent(inputInvalidEvent);
             jasmine.clock().tick(5);
-            
+
             textInput3.dispatchEvent(inputInvalidEvent);
             jasmine.clock().tick(10);
 
             expect(this.form.fire).toHaveBeenCalledWith('invalid', [textInput1, textInput3]);
+        });
+    });
+
+    describe('submit interception', function() {
+        beforeEach(function() {
+            jasmine.clock().install();
+
+            this.form.setAttribute('method', 'post');
+            this.form.fire = jasmine.createSpy('submit');
+
+            var ajaxContainer = document.createElement('div');
+            ajaxContainer.appendChild(document.createElement('core-ajax'));
+            this.form.shadowRoot = ajaxContainer;
+        });
+
+        afterEach(function() {
+            jasmine.clock().uninstall();
+        });
+
+        it('submit method is overridden', function() {
+            var textInput1 = document.createElement('input'),
+                textInput2 = document.createElement('input'),
+                textInput3 = document.createElement('input');
+
+            textInput1.setAttribute('name', 'test1');
+            textInput2.setAttribute('name', 'test2');
+            textInput3.setAttribute('name', 'test3');
+
+            this.form.appendChild(textInput1);
+            this.form.appendChild(textInput2);
+            this.form.appendChild(textInput3);
+
+            ajaxForm.domReady.call(this.form);
+
+            this.form.submit();
+
+            expect(this.form.fire).toHaveBeenCalledWith('submit');
         });
     });
 });
