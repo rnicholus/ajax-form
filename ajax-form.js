@@ -117,6 +117,10 @@
 
             interceptSubmit.call(this);
 
+            this.submit = function(){
+                this.fire('submit');
+            };
+
             listenForAjaxComplete.call(this);
         }
     };
