@@ -11,7 +11,9 @@
         }
     },
 
+    // NOTE: Safari doesn't have any visual indications when submit is blocked
     interceptSubmit = function() {
+        // Intercept submit event
         this.addEventListener('submit', function(event) {
             // Stop form submission.  Believe it or not,
             // both of these are required for some reason,
@@ -20,12 +22,27 @@
             event.stopPropagation();
 
             // respect any field validation attributes
-            // NOTE: Safari doesn't have any visual indications when submit is blocked
             if (this.checkValidity()) {
                 this.fire('submitting');
                 sendForm.call(this, this);
             }
         }.bind(this));
+
+        // Intercept native form submit function.
+        // In order to force the browser to highlight the invalid fields,
+        // we need to create a hidden submit button and click it if the form is invalid.
+        var fakeSubmitEl = document.createElement('input');
+        fakeSubmitEl.setAttribute('type', 'submit');
+        fakeSubmitEl.style.display = 'none';
+        this.appendChild(fakeSubmitEl);
+        this.submit = function() {
+            if (this.checkValidity()) {
+                this.fire('submit');
+            }
+            else {
+                fakeSubmitEl.click();
+            }
+        };
     },
 
     listenForAjaxComplete = function() {
@@ -116,10 +133,6 @@
             watchForInvalidFields.call(this, this);
 
             interceptSubmit.call(this);
-
-            this.submit = function(){
-                this.fire('submit');
-            };
 
             listenForAjaxComplete.call(this);
         }
