@@ -1,11 +1,9 @@
 (function() {
     var getValidMethod = function(method) {
         if (method) {
-            var proposedMethod = method.toLowerCase();
+            var proposedMethod = method.toUpperCase();
 
-            // PUT & POST are the only acceptable methods for now.
-            // GET requires us to be able to convert form fields into a URL-encoded string.
-            if (['put', 'post', 'get'].indexOf(proposedMethod) >= 0) {
+            if (['GET', 'POST', 'PUT'].indexOf(proposedMethod) >= 0) {
                 return proposedMethod;
             }
         }
@@ -23,15 +21,15 @@
             // NOTE: Safari doesn't have any visual indications when submit is blocked
             if (this.checkValidity()) {
                 this.fire('submitting');
-                if ('application/x-www-form-urlencoded' === this.enctype) {
+                if ('multipart/form-data' !== this.enctype) {
                     sendUrlencodedForm.call(this, this);
                 }
                 else {
-                    if ('post' === this.acceptableMethod) {
-                        sendMultipartForm.call(this, this);
-                    }
-                    else if ('get' === this.acceptableMethod) {
+                    if ('GET' === this.acceptableMethod) {
                         sendUrlencodedForm.call(this, this);
+                    }
+                    else {
+                        sendMultipartForm.call(this, this);
                     }
                 }
             }
@@ -73,8 +71,6 @@
     /**
      * Parse an `HTMLRadioElement`'s value, returning the value iff
      * the element has a present `checked` attribute.
-     *
-     * @TODO: Grouped radio elements?
      *
      * @param HTMLRadioElement element
      * @return mixed The element's value
@@ -122,33 +118,18 @@
     /**
      * Parse an `HTMLSelectElement`'s value.
      *
-     * @TODO loop through <option> elements and find a true one
-     * @TODO: ensure 'multiple' attribute is obeyed
-     *
      * @param HTMLSelectElement element
-     * @return mixed The element's value
+     * @return mixed The element's selected values
      */
-    parseSelectElementValue = function(element) {
-        var elementValue;
+    parseSelectElementValues = function(element) {
+        var elementValues = [];
 
-        // @TODO: not exactly cross browser
         Array.prototype.forEach.call(element.options, function(optionElement){
-            var tempElementValue;
-            if (element.tagName.toLowerCase() === 'optgroup') {
-                tempElementValue = parseSelectOptionElementValue(optionElement);
-                tempElementValue = parseSelectOptionElementValue(optionElement);
-                if (tempElementValue){
-                    elementValue = tempElementValue;
-                }
-            } else {
-                tempElementValue = parseSelectOptionElementValue(optionElement);
-                if (tempElementValue){
-                    elementValue = tempElementValue;
-                }
-            }
+            var tempElementValue = parseSelectOptionElementValue(optionElement);
+            tempElementValue && elementValues.push(tempElementValue);
         });
 
-        return elementValue;
+        return elementValues;
     },
 
     /**
@@ -179,8 +160,6 @@
      * @return mixed The element's value attribute
      */
     parseElementValue = function(element){
-
-        // @TODO: validate in the 'other' browsers
         var elementValue,
             elementTag = element.tagName.toLowerCase();
 
@@ -192,24 +171,11 @@
         }
         //else if(/select*/.exec(elementTag)) {
         else if (elementTag === 'select') {
-             elementValue = parseSelectElementValue(element);
+             elementValue = parseSelectElementValues(element);
         }
 
         return elementValue;
 
-    },
-
-    /**
-     * Return an `HTMLElement`'s `name` attribute
-     * @param HTMLElement element
-     * @return String The element's name attribute
-     */
-    parseElementName = function(element) {
-        // @TODO: is this needed? look into ways browsers parse input
-        // element names
-        var name;
-        name = element.name;
-        return name;
     },
 
     /**
@@ -226,13 +192,12 @@
         formElements = formElements.concat(Array.prototype.slice.call(form.getElementsByTagName('textarea')));
 
         formElements.forEach(function(formElement){
-            var key = parseElementName(formElement),
+            var key = formElement.name,
                 val = parseElementValue(formElement);
 
             if (key && val) {
                 formObj[key] = val;
             }
-
         });
 
         return formObj;
@@ -244,16 +209,25 @@
      */
     sendUrlencodedForm = function(form){
         var sender = this.shadowRoot.getElementsByTagName('core-ajax')[0],
-            data = parseForm(form);
+            // We must URL encode the data and place it in the body or 
+            // query paramter section of the URI (depending on the method).  
+            // core-ajax attempts to do this for us, but this requires we pass 
+            // an Object to core-ajax with the params and we cannot properly 
+            // express multiple values for a <select> (which is possible) 
+            // via a JavaScript Object.
+            data = toQueryString(parseForm(form));
 
-        //sender.contentType = 'application/x-www-form-urlencoded';
         if (this.cookies) {
             sender.withCredentials = true;
         }
 
-        sender.method = 'GET';
-        // @TODO: does core-ajax urlencode our form for us?
-        sender.params = data;
+        if (this.acceptableMethod === 'POST') {
+            sender.body = data;
+        }
+        else {
+            sender.url += (sender.url.indexOf('?') > 0 ? '&' : '?') + data;            
+        }
+        
         sender.go();
     },
 
@@ -276,6 +250,26 @@
         sender.body = data;
         sender.go();
     },
+    
+    toQueryString = function(params) {
+        var queryParams = [];
+        
+        Object.keys(params).forEach(function(key) {
+            var val = params[key];
+            key = encodeURIComponent(key);
+            
+            if (val && Object.prototype.toString.call(val) === '[object Array]') {
+                val.forEach(function(valInArray) {
+                    queryParams.push(key + '=' + encodeURIComponent(valInArray));
+                });
+            }
+            else {
+                queryParams.push(val == null ? key : (key + '=' + encodeURIComponent(val)));
+            }
+        });
+
+        return queryParams.join('&');
+      },
 
     watchForInvalidFields = function(form) {
         var customEl = this,
