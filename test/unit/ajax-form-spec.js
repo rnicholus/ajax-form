@@ -6,7 +6,7 @@ describe('ajax-form custom element tests', function() {
 
     describe('method normalization', function() {
         beforeEach(function() {
-            var ajaxContainer = document.createElement('div');            
+            var ajaxContainer = document.createElement('div');
             ajaxContainer.appendChild(document.createElement('core-ajax'));
             this.form.shadowRoot = ajaxContainer;
         });
@@ -46,15 +46,15 @@ describe('ajax-form custom element tests', function() {
     describe('form validation', function() {
         beforeEach(function() {
             jasmine.clock().install();
-            
+
             this.form.setAttribute('method', 'post');
             this.form.fire = jasmine.createSpy('fire');
-            
-            var ajaxContainer = document.createElement('div');            
+
+            var ajaxContainer = document.createElement('div');
             ajaxContainer.appendChild(document.createElement('core-ajax'));
             this.form.shadowRoot = ajaxContainer;
         });
-        
+
         afterEach(function() {
             jasmine.clock().uninstall();
         });
@@ -91,11 +91,12 @@ describe('ajax-form custom element tests', function() {
         beforeEach(function() {
             jasmine.clock().install();
 
+            this.coreAjax = document.createElement('core-ajax');
             this.form.setAttribute('method', 'post');
             this.form.fire = jasmine.createSpy('submit');
 
             var ajaxContainer = document.createElement('div');
-            ajaxContainer.appendChild(document.createElement('core-ajax'));
+            ajaxContainer.appendChild(this.coreAjax);
             this.form.shadowRoot = ajaxContainer;
         });
 
@@ -121,6 +122,52 @@ describe('ajax-form custom element tests', function() {
             this.form.submit();
 
             expect(this.form.fire).toHaveBeenCalledWith('submit');
+        });
+        
+        describe('url encoding', function() {
+            beforeEach(function() {
+                this.coreAjax.url = 'test';
+                
+                var textInput1 = document.createElement('input');
+    
+                textInput1.setAttribute('name', 'test1');
+                textInput1.setAttribute('type', 'text');
+                textInput1.value = 'foobar';
+    
+                this.form.appendChild(textInput1);
+
+                spyOn(this.form, 'checkValidity').and.returnValue(true);
+            });
+            
+            it('url encodes the form fields and includes them in query string for GET requests', function(done) {
+                this.form.setAttribute('method', 'GET');
+                
+                ajaxForm.domReady.call(this.form);
+    
+                this.coreAjax.go = function() {
+                    expect(this.coreAjax.url).toBe('test?test1=foobar');
+                    done();            
+                }.bind(this);
+    
+                var event = document.createEvent('HTMLEvents');
+                event.initEvent('submit', true, true);
+                this.form.dispatchEvent(event);
+            });
+    
+            it('url encodes the form fields and includes them in the payload for POST requests', function(done) {
+                this.form.setAttribute('method', 'POST');
+    
+                ajaxForm.domReady.call(this.form);
+    
+                this.coreAjax.go = function() {
+                    expect(this.coreAjax.body).toBe('test1=foobar');
+                    done();            
+                }.bind(this);
+    
+                var event = document.createEvent('HTMLEvents');
+                event.initEvent('submit', true, true);
+                this.form.dispatchEvent(event);
+            });
         });
     });
 });
