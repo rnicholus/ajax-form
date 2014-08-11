@@ -62,7 +62,7 @@ that all of your HTML imports are concatenated into one file.__
 @status beta
 @homepage index.html
 -->
-<polymer-element name="ajax-form" extends="form" attributes="action cookies headers method">
+<polymer-element name="ajax-form" extends="form" attributes="action cookies enctype headers method">
 
     <template>
 
@@ -164,6 +164,26 @@ that all of your HTML imports are concatenated into one file.__
          */
 
         /**
+         * The encoding type for the underlying request's message-body.
+         *
+         *     <form is="ajax-form"
+         *         method="POST"
+         *         action="form/handler"
+         *         enctype="multipart/form-data">
+         *         ...
+         *     </form>
+         *
+         * The above form will be submitted as a multipart encoded POST request.
+         * By default, without an enctype specified, "application/x-www-form-urlencoded"
+         * is assumed.  GET requests will not have a body, and the form fields 
+         * will be URL encoded as URI query parameters.
+         *
+         * @attribute enctype
+         * @type string
+         * @default 'application/x-www-form-urlencoded'
+         */
+
+        /**
          * Custom headers to be sent with the form submit request.
          * The value must be a JSON Object containing header names and values.
          *
@@ -187,7 +207,7 @@ that all of your HTML imports are concatenated into one file.__
          *
          * Same as the method attribute of a non-ajax `<form>`.
          * The method to use when sending the request. Currently,
-         * only POST and PUT are allowed.
+         * GET, POST, and PUT are allowed.
          *
          *     <form is="ajax-form"
          *         method="put"
@@ -199,7 +219,7 @@ that all of your HTML imports are concatenated into one file.__
          *
          * @attribute method
          * @type string
-         * @default ''
+         * @default 'GET'
          */
 
         Polymer('ajax-form', ajaxForm);

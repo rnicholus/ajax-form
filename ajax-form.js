@@ -1,11 +1,9 @@
 (function() {
     var getValidMethod = function(method) {
         if (method) {
-            var proposedMethod = method.toLowerCase();
+            var proposedMethod = method.toUpperCase();
 
-            // PUT & POST are the only acceptable methods for now.
-            // GET requires us to be able to convert form fields into a URL-encoded string.
-            if (['put', 'post'].indexOf(proposedMethod) >= 0) {
+            if (['GET', 'POST', 'PUT'].indexOf(proposedMethod) >= 0) {
                 return proposedMethod;
             }
         }
@@ -24,7 +22,17 @@
             // respect any field validation attributes
             if (this.checkValidity()) {
                 this.fire('submitting');
-                sendForm.call(this, this);
+                if ('multipart/form-data' !== this.enctype) {
+                    sendUrlencodedForm.call(this, this);
+                }
+                else {
+                    if ('GET' === this.acceptableMethod) {
+                        sendUrlencodedForm.call(this, this);
+                    }
+                    else {
+                        sendMultipartForm.call(this, this);
+                    }
+                }
             }
         }.bind(this));
 
@@ -53,9 +61,12 @@
         }.bind(this));
     },
 
-    sendForm = function(form) {
-        var sender = this.shadowRoot.getElementsByTagName('core-ajax')[0],
-            formData = new FormData(window.unwrap(form)),
+    // @TODO: should these FormData parse methods be exposed as events
+    // if, say, someone wanted to filter or transform the data in a form
+    // (i.e., radio from yes/no to true/false, or textarea from markdown to
+    // html)?
+    parseFormData = function(form) {
+        var formData = new FormData(window.unwrap(form)),
             fileInput = form.getElementsByTagName('file-input')[0];
 
         if (fileInput) {
@@ -70,6 +81,181 @@
             });
         }
 
+        return formData;
+
+    },
+
+    /**
+     * Parse an `HTMLRadioElement`'s value, returning the value iff
+     * the element has a present `checked` attribute.
+     *
+     * @param HTMLRadioElement element
+     * @return mixed The element's value
+     */
+    parseRadioElementValue = function(element) {
+        var value;
+        if (element.checked === true) {
+            value = element.value;
+        }
+        return value;
+
+    },
+
+    /**
+     * Parse an `HTMLOptionElement`'s value, returning the value iff
+     * the element has a present `selected` attribute.
+     * @param HTMLOptionElement element
+     * @return mixed The element's value
+     */
+    parseSelectOptionElementValue = function(element) {
+        var elementValue;
+        if (element.selected === true){
+            elementValue = element.value;
+        }
+        return elementValue;
+    },
+
+    /**
+     * Parse an `HTMLOptGroupElement` return the `HTMLOptionElement` that
+     * has a `checked` attribute.
+     * @param HTMLOptGroupElement element
+     * @return mixed The element's value
+     */
+    parseSelectOptgroupElementValue = function(element) {
+        var elementValue;
+        Array.prototype.forEach.call(element.options, function(optionElement){
+            var tempElementValue = parseSelectOptionElementValue(optionElement);
+            if (tempElementValue){
+                elementValue = tempElementValue;
+            }
+        });
+        return elementValue;
+    },
+
+    /**
+     * Parse an `HTMLSelectElement`'s value.
+     *
+     * @param HTMLSelectElement element
+     * @return mixed The element's selected values
+     */
+    parseSelectElementValues = function(element) {
+        var elementValues = [];
+
+        Array.prototype.forEach.call(element.options, function(optionElement){
+            var tempElementValue = parseSelectOptionElementValue(optionElement);
+            tempElementValue && elementValues.push(tempElementValue);
+        });
+
+        return elementValues;
+    },
+
+    /**
+     * Parse an `HTMLInputElement`'s value.
+     * @param HTMLInputElement element
+     * @return mixed The element's value
+     */
+    parseInputElementValue = function(element){
+        var elementValue,
+            elementType = element.type;
+
+        if (element.disabled === true ||
+            ['submit', 'reset', 'button', 'image'].indexOf(elementType) !== -1) {
+             // do nothing for these button types
+        }
+        else if (elementType === 'radio') {
+            elementValue = parseRadioElementValue(element);
+        } else {
+            elementValue = element.value;
+        }
+
+        return elementValue;
+    },
+
+    /**
+     * Return the value of some `HTMLElement`s  value attribute if possible.
+     * @param HTMLElement element
+     * @return mixed The element's value attribute
+     */
+    parseElementValue = function(element){
+        var elementValue,
+            elementTag = element.tagName.toLowerCase();
+
+        if (elementTag === 'input') {
+            elementValue = parseInputElementValue(element);
+        }
+        else if (elementTag === 'textarea'){
+            elementValue = element.value;
+        }
+        //else if(/select*/.exec(elementTag)) {
+        else if (elementTag === 'select') {
+             elementValue = parseSelectElementValues(element);
+        }
+
+        return elementValue;
+
+    },
+
+    /**
+     * Parse an `HTMLFormElement` into key value pairs
+     * @param HTMLFormElement form
+     * @return Object key, value pairs representing the html form
+     */
+    parseForm = function(form) {
+        var formObj = {},
+            formElements = form.getElementsByTagName('input');
+
+        formElements = Array.prototype.slice.call(formElements);
+        formElements = formElements.concat(Array.prototype.slice.call(form.getElementsByTagName('select')));
+        formElements = formElements.concat(Array.prototype.slice.call(form.getElementsByTagName('textarea')));
+
+        formElements.forEach(function(formElement){
+            var key = formElement.name,
+                val = parseElementValue(formElement);
+
+            if (key && val) {
+                formObj[key] = val;
+            }
+        });
+
+        return formObj;
+    },
+
+    /**
+     * Send a url-encoded `HTMLFormElement` in the URL query string.
+     * @param HTMLFormElement form
+     */
+    sendUrlencodedForm = function(form){
+        var sender = this.shadowRoot.getElementsByTagName('core-ajax')[0],
+            // We must URL encode the data and place it in the body or 
+            // query paramter section of the URI (depending on the method).  
+            // core-ajax attempts to do this for us, but this requires we pass 
+            // an Object to core-ajax with the params and we cannot properly 
+            // express multiple values for a <select> (which is possible) 
+            // via a JavaScript Object.
+            data = toQueryString(parseForm(form));
+
+        if (this.cookies) {
+            sender.withCredentials = true;
+        }
+
+        if (this.acceptableMethod === 'POST') {
+            sender.body = data;
+        }
+        else {
+            sender.url += (sender.url.indexOf('?') > 0 ? '&' : '?') + data;            
+        }
+        
+        sender.go();
+    },
+
+    /**
+     * Send a multipart-encoded `HTMLFormElement` in the request body.
+     * @param HTMLFormElement form
+     */
+    sendMultipartForm = function(form) {
+        var sender = this.shadowRoot.getElementsByTagName('core-ajax')[0],
+            data = parseFormData(form);
+
         // make sure Polymer/core-ajax doesn't touch the Content-Type.
         // The browser must set this with the proper multipart boundary ID.
         sender.contentType = null;
@@ -78,9 +264,29 @@
             sender.withCredentials = true;
         }
 
-        sender.body = formData;
+        sender.body = data;
         sender.go();
     },
+    
+    toQueryString = function(params) {
+        var queryParams = [];
+        
+        Object.keys(params).forEach(function(key) {
+            var val = params[key];
+            key = encodeURIComponent(key);
+            
+            if (val && Object.prototype.toString.call(val) === '[object Array]') {
+                val.forEach(function(valInArray) {
+                    queryParams.push(key + '=' + encodeURIComponent(valInArray));
+                });
+            }
+            else {
+                queryParams.push(val == null ? key : (key + '=' + encodeURIComponent(val)));
+            }
+        });
+
+        return queryParams.join('&');
+      },
 
     watchForInvalidFields = function(form) {
         var customEl = this,

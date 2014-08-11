@@ -10,11 +10,11 @@ describe('ajax-form custom element tests', function() {
             ajaxContainer.appendChild(document.createElement('core-ajax'));
             this.form.shadowRoot = ajaxContainer;
         });
-        
-        it('throws an error if the method is not "post" or "put"', function() {
+
+        it('throws an error if the method is not "get", "post" or "put"', function() {
             expect(ajaxForm.domReady.bind(this.form)).toThrow();
 
-            this.form.setAttribute('method', 'get');
+            this.form.setAttribute('method', 'head');
             expect(ajaxForm.domReady.bind(this.form)).toThrow();
         });
 
@@ -30,6 +30,14 @@ describe('ajax-form custom element tests', function() {
             spyOn(this.form, 'addEventListener');
 
             this.form.setAttribute('method', 'put');
+            ajaxForm.domReady.call(this.form);
+            expect(this.form.addEventListener.calls.mostRecent().args[0]).toBe('submit');
+        });
+
+        it('adds a listener to squelch submit events if the method is "get"', function() {
+            spyOn(this.form, 'addEventListener');
+
+            this.form.setAttribute('method', 'get');
             ajaxForm.domReady.call(this.form);
             expect(this.form.addEventListener.calls.mostRecent().args[0]).toBe('submit');
         });
