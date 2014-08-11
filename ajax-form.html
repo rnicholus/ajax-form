@@ -42,8 +42,7 @@ As an added benefit, ONLY valid files (not those that have failed any validation
 will be sent along with the request!
 
 ### Handling the request server-side
-All forms will be sent as multipart encoded requests.  If you include a `<file-input>`
-field, files will be sent with a name according to the `name` attribute on the `<file-input>`.
+If you include a `<file-input>` field, files will be sent with a name according to the `name` attribute on the `<file-input>`.
 If more than one file has been selected, the `name` attribute for each file in the request
 will include a "[]" at the end of the name string.
 
@@ -126,7 +125,7 @@ that all of your HTML imports are concatenated into one file.__
          *
          * Same as the action attribute of a non-ajax `<form>`.
          * This will hold the path to your server that is set to handle
-         * the multipart encoded request.
+         * the request.
          *
          *     <form is="ajax-form"
          *         method="POST"
