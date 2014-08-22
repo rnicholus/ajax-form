@@ -61,26 +61,43 @@
             }.bind(this));
         },
     
+        parseCustomElements = function(form, parseFileInputs) {
+            var data = {};
+            
+            Array.prototype.slice.call(form.querySelectorAll('*[name]')).forEach(function(el) {
+                if (parseFileInputs && el.tagName.toLowerCase() === 'file-input') {
+                    var fileInputName = el.getAttribute('name') || 'files';
+    
+                    if (el.files.length > 1) {
+                        fileInputName += '[]';
+                    }
+        
+                    el.files.forEach(function(file) {
+                        data[fileInputName] = file;
+                    });
+                }
+                else if (el.tagName.indexOf('-') >= 0 && el.value != null) {
+                    data[el.getAttribute('name')] = el.value;        
+                }
+            });
+            
+            return data;
+        },
+    
         // @TODO: should these FormData parse methods be exposed as events
         // if, say, someone wanted to filter or transform the data in a form
         // (i.e., radio from yes/no to true/false, or textarea from markdown to
         // html)?
         parseFormData = function(form) {
             var formData = new FormData(window.unwrap(form)),
-                fileInput = form.getElementsByTagName('file-input')[0];
-    
-            if (fileInput) {
-                var fileInputName = fileInput.getAttribute('name') || 'files';
-    
-                if (fileInput.files.length > 1) {
-                    fileInputName += '[]';
-                }
-    
-                fileInput.files.forEach(function(file) {
-                    formData.append(fileInputName, file);
+                customElementData = parseCustomElements(form, true);
+            
+            if (customElementData) {
+                Object.keys(customElementData).forEach(function(fieldName) {
+                    formData.append(fieldName, customElementData[fieldName]); 
                 });
             }
-    
+            
             return formData;
     
         },
@@ -202,7 +219,8 @@
          */
         parseForm = function(form) {
             var formObj = {},
-                formElements = form.getElementsByTagName('input');
+                formElements = form.getElementsByTagName('input'),
+                customElementsData = parseCustomElements(form);
     
             formElements = Array.prototype.slice.call(formElements);
             formElements = formElements.concat(Array.prototype.slice.call(form.getElementsByTagName('select')));
@@ -215,6 +233,10 @@
                 if (key && val) {
                     formObj[key] = val;
                 }
+            });
+    
+            Object.keys(customElementsData).forEach(function(fieldName) {   
+                formObj[fieldName] = customElementsData[fieldName]; 
             });
     
             return formObj;

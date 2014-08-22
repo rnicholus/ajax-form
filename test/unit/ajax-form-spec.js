@@ -128,13 +128,22 @@ describe('ajax-form custom element tests', function() {
             beforeEach(function() {
                 this.coreAjax.url = 'test';
                 
-                var textInput1 = document.createElement('input');
-    
+                var textInput1 = document.createElement('input'),
+                    ce1 = document.createElement('my-ce1'),
+                    ce2 = document.createElement('my-ce2');
+
                 textInput1.setAttribute('name', 'test1');
                 textInput1.setAttribute('type', 'text');
                 textInput1.value = 'foobar';
+
+                ce1.setAttribute('name', 'ce1name');
+                ce1.value = 'ce1value';
+                
+                ce2.value = 'ce2value';
     
                 this.form.appendChild(textInput1);
+                this.form.appendChild(ce1);
+                this.form.appendChild(ce2);
 
                 spyOn(this.form, 'checkValidity').and.returnValue(true);
             });
@@ -145,7 +154,7 @@ describe('ajax-form custom element tests', function() {
                 ajaxForm.domReady.call(this.form);
     
                 this.coreAjax.go = function() {
-                    expect(this.coreAjax.url).toBe('test?test1=foobar');
+                    expect(this.coreAjax.url).toBe('test?test1=foobar&ce1name=ce1value');
                     done();            
                 }.bind(this);
     
@@ -160,7 +169,7 @@ describe('ajax-form custom element tests', function() {
                 ajaxForm.domReady.call(this.form);
     
                 this.coreAjax.go = function() {
-                    expect(this.coreAjax.body).toBe('test1=foobar');
+                    expect(this.coreAjax.body).toBe('test1=foobar&ce1name=ce1value');
                     done();            
                 }.bind(this);
     
