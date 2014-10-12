@@ -6,7 +6,7 @@
 ## HTML forms on performance-enhancing drugs
 
 The `ajax-form` element adds some more power and features to traditional HTML forms.
-Also allows the `<file-input>` custom element (and any other custom element form fields 
+Also allows the `<file-input>` custom element (and any other custom element form fields
 that have a `name` attribute and a `value`) to be submitted along with other traditional
 form elements.
 
@@ -62,7 +62,7 @@ that all of your HTML imports are concatenated into one file.__
 @status beta
 @homepage index.html
 -->
-<polymer-element name="ajax-form" extends="form" attributes="action cookies enctype headers method">
+<polymer-element name="ajax-form" extends="form" attributes="cookies headers">
 
     <template>
 
@@ -175,7 +175,7 @@ that all of your HTML imports are concatenated into one file.__
          *
          * The above form will be submitted as a multipart encoded POST request.
          * By default, without an enctype specified, "application/x-www-form-urlencoded"
-         * is assumed.  GET requests will not have a body, and the form fields 
+         * is assumed.  GET requests will not have a body, and the form fields
          * will be URL encoded as URI query parameters.
          *
          * @attribute enctype
