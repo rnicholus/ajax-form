@@ -16,8 +16,8 @@
   ],
   "keywords": ["Polymer", "web-components", "form", "html", "ajax"],
   "dependencies": {
-    "core-ajax": "Polymer/core-ajax#~0.3.3",
-    "polymer": "Polymer/polymer#~0.3.3"
+    "core-ajax": "Polymer/core-ajax#~0.4.2",
+    "polymer": "Polymer/polymer#~0.4.2"
   },
   "devDependencies": {
     "bind-polyfill": "*"
