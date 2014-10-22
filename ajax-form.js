@@ -61,8 +61,10 @@
             }.bind(this));
         },
         
-        maybeParsePaperDropdownMenu = function(customElement, data) {
-            if (customElement.tagName.toLowerCase() === 'paper-dropdown-menu') {
+        maybeParseCoreDropdownMenu = function(customElement, data) {
+            if (customElement.tagName.toLowerCase() === 'core-dropdown-menu' ||
+                customElement.tagName.toLowerCase() === 'paper-dropdown-menu') {
+                    
                 if (customElement.selectedItem) {
                     data[customElement.getAttribute('name')] = customElement.selectedItem.label;
                     return true;
@@ -98,7 +100,7 @@
 
             Array.prototype.slice.call(form.querySelectorAll('*[name]')).forEach(function(el) {
                 (parseFileInputs && maybeParseFileInput(el, data)) || 
-                maybeParsePaperDropdownMenu(el, data) || 
+                maybeParseCoreDropdownMenu(el, data) || 
                 maybeParseGenericCustomElement(el, data);
             });
 
