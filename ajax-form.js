@@ -60,25 +60,46 @@
                  this.fire('submitted', event.detail.xhr);
             }.bind(this));
         },
+        
+        maybeParsePaperDropdownMenu = function(customElement, data) {
+            if (customElement.tagName.toLowerCase() === 'paper-dropdown-menu') {
+                if (customElement.selectedItem) {
+                    data[customElement.getAttribute('name')] = customElement.selectedItem.label;
+                    return true;
+                }
+            }
+        },
+        
+        maybeParseFileInput = function(customElement, data) {
+            if (customElement.tagName.toLowerCase() === 'file-input') {
+                var fileInputName = customElement.getAttribute('name') || 'files';
+    
+                if (customElement.files.length > 1) {
+                    fileInputName += '[]';
+                }
+    
+                customElement.files.forEach(function(file) {
+                    data[fileInputName] = file;
+                });
+                
+                return !!customElement.files.length;
+            }
+        },
+
+        maybeParseGenericCustomElement = function(customElement, data) {
+            if (customElement.tagName.indexOf('-') >= 0 && customElement.value != null) {
+                data[customElement.getAttribute('name')] = customElement.value;
+                return true;
+            }
+        },
 
         parseCustomElements = function(form, parseFileInputs) {
             var data = {};
 
             Array.prototype.slice.call(form.querySelectorAll('*[name]')).forEach(function(el) {
-                if (parseFileInputs && el.tagName.toLowerCase() === 'file-input') {
-                    var fileInputName = el.getAttribute('name') || 'files';
-
-                    if (el.files.length > 1) {
-                        fileInputName += '[]';
-                    }
-
-                    el.files.forEach(function(file) {
-                        data[fileInputName] = file;
-                    });
-                }
-                else if (el.tagName.indexOf('-') >= 0 && el.value != null) {
-                    data[el.getAttribute('name')] = el.value;
-                }
+                (parseFileInputs && maybeParseFileInput(el, data)) || 
+                maybeParsePaperDropdownMenu(el, data) || 
+                maybeParseGenericCustomElement(el, data);
             });
 
             return data;

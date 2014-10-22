@@ -42,6 +42,17 @@ That's it!
 As an added benefit, ONLY valid files (not those that have failed any validation rules setup in your `<file-input>` element)
 will be sent along with the request!
 
+### Integration with generic custom elements form fields (such as `<paper-input>`)
+You can easily submit a `<paper-input>` or `<core-input> element.  Just place it 
+in your `<ajax-form>`, and be sure it has a `name` attribute.  In fact, any
+custom element form field with a `name` attribute can be handled by `<ajax-form>`,
+provided the value to send to the server is exposed via a `value` property on the
+element.
+
+### Integration with `<paper-dropdown-menu>`
+`<paper-dropdown-menu>` elements can be submitted too!  Just place one or more of
+these element in your `<ajax-form>` and be sure to include a `name` attribute.
+
 ### Handling the request server-side
 If you include a `<file-input>` field, files will be sent with a name according to the `name` attribute on the `<file-input>`.
 If more than one file has been selected, the `name` attribute for each file in the request
