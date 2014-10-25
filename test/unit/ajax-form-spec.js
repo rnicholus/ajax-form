@@ -2,6 +2,7 @@
 describe('ajax-form custom element tests', function() {
     beforeEach(function() {
         this.form = document.createElement('form');
+        this.form.onMutation = function() {};
     });
 
     describe('method normalization', function() {

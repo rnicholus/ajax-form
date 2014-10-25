@@ -60,30 +60,30 @@
                  this.fire('submitted', event.detail.xhr);
             }.bind(this));
         },
-        
+
         maybeParseCoreDropdownMenu = function(customElement, data) {
             if (customElement.tagName.toLowerCase() === 'core-dropdown-menu' ||
                 customElement.tagName.toLowerCase() === 'paper-dropdown-menu') {
-                    
+
                 if (customElement.selectedItem) {
                     data[customElement.getAttribute('name')] = customElement.selectedItem.label;
                     return true;
                 }
             }
         },
-        
+
         maybeParseFileInput = function(customElement, data) {
             if (customElement.tagName.toLowerCase() === 'file-input') {
                 var fileInputName = customElement.getAttribute('name') || 'files';
-    
+
                 if (customElement.files.length > 1) {
                     fileInputName += '[]';
                 }
-    
+
                 customElement.files.forEach(function(file) {
                     data[fileInputName] = file;
                 });
-                
+
                 return !!customElement.files.length;
             }
         },
@@ -99,8 +99,8 @@
             var data = {};
 
             Array.prototype.slice.call(form.querySelectorAll('*[name]')).forEach(function(el) {
-                (parseFileInputs && maybeParseFileInput(el, data)) || 
-                maybeParseCoreDropdownMenu(el, data) || 
+                (parseFileInputs && maybeParseFileInput(el, data)) ||
+                maybeParseCoreDropdownMenu(el, data) ||
                 maybeParseGenericCustomElement(el, data);
             });
 
@@ -333,31 +333,47 @@
             return queryParams.join('&');
           },
 
-        watchForInvalidFields = function(form) {
+        watchForInvalidFields = function(form, existingEventListeners) {
             var customEl = this,
-                fields = form.getElementsByTagName('input'),
+                initialFields = Array.prototype.slice.call(form.querySelectorAll(':invalid, :valid')),
                 invalidFields = [],
+                
+                listenForInvalidEvent = function(field) {
+                    field.willValidate && field.addEventListener('invalid', function() {
+                        invalidFields.push(field.customElementRef || field);
+        
+                        // In case another element is invalid and the event
+                        // hasn't been triggered yet, hold off on firing the
+                        // invalid event on the custom el.
+                        clearTimeout(timer);
+                        timer = setTimeout(function() {
+                            customEl.fire('invalid', invalidFields);
+                            invalidFields = [];
+                            console.error('Form submission blocked - constraints violation.');
+                        }, 10);
+                    });
+                },
+                
+                // Be sure to observe any validatable form fields added in the future
+                mutationHandler = function(observer, records) {
+                    records.forEach(function(record) {
+                        if (record.addedNodes.length) {
+                            Array.prototype.slice.call(record.addedNodes).forEach(function(addedNode) {
+                                addedNode.willValidate && listenForInvalidEvent(addedNode);
+                            });
+                        }
+                    });
+                    
+                    customEl.onMutation(customEl, mutationHandler);
+                },
+                
                 timer = null;
 
-            fields = Array.prototype.slice.call(fields);
-            fields = fields.concat(Array.prototype.slice.call(form.getElementsByTagName('select')));
-            fields = fields.concat(Array.prototype.slice.call(form.getElementsByTagName('textarea')));
-
-            fields.forEach(function(field) {
-                field.addEventListener('invalid', function() {
-                    invalidFields.push(this);
-
-                    // In case another element is invalid and the event
-                    // hasn't been triggered yet, hold off on firing the
-                    // invalid event on the custom el.
-                    clearTimeout(timer);
-                    timer = setTimeout(function() {
-                        customEl.fire('invalid', invalidFields);
-                        invalidFields = [];
-                        console.error('Form submission blocked - constraints violation.');
-                    }, 10);
-                });
+            initialFields.forEach(function(field) {
+                listenForInvalidEvent(field);
             });
+
+            customEl.onMutation(customEl, mutationHandler);
         };
 
     this.ajaxForm = {
