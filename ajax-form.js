@@ -64,9 +64,12 @@
         maybeParseCoreDropdownMenu = function(customElement, data) {
             if (customElement.tagName.toLowerCase() === 'core-dropdown-menu' ||
                 customElement.tagName.toLowerCase() === 'paper-dropdown-menu') {
+                
+                var coreMenu = customElement.getElementsByTagName('core-menu')[0],
+                    selectedItem = coreMenu && coreMenu.selectedItem;
                     
-                if (customElement.selectedItem) {
-                    data[customElement.getAttribute('name')] = customElement.selectedItem.label;
+                if (selectedItem) {
+                    data[customElement.getAttribute('name')] = selectedItem.label || selectedItem.innerText;
                     return true;
                 }
             }
