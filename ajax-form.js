@@ -69,7 +69,7 @@
                     selectedItem = coreMenu && coreMenu.selectedItem;
                     
                 if (selectedItem) {
-                    data[customElement.getAttribute('name')] = selectedItem.label || selectedItem.innerText;
+                    data[customElement.getAttribute('name')] = selectedItem.label || selectedItem.textContent;
                     return true;
                 }
             }
