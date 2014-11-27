@@ -7,7 +7,7 @@ HTML forms on performance-enhancing drugs
 
 ## Installation
 
-`bower install ajax-form'
+`bower install ajax-form`
 
 ...or if you have a bower.json file with an entry for ajax-form:
 
