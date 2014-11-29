@@ -57,7 +57,7 @@
             var sender = this.shadowRoot.getElementsByTagName('core-ajax')[0];
 
             sender.addEventListener('core-complete', function(event) {
-                 this.fire('submitted', event.detail.xhr);
+                this.fire('submitted', event.detail.xhr);
             }.bind(this));
         },
         
@@ -228,7 +228,7 @@
             }
             //else if(/select*/.exec(elementTag)) {
             else if (elementTag === 'select') {
-                 elementValue = parseSelectElementValues(element);
+                elementValue = parseSelectElementValues(element);
             }
 
             return elementValue;
@@ -331,7 +331,7 @@
             });
 
             return queryParams.join('&');
-          },
+        },
 
         watchForInvalidFields = function(form) {
             var customEl = this,
