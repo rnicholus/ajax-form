@@ -54,7 +54,7 @@
         },
 
         listenForAjaxComplete = function() {
-            var sender = this.shadowRoot.getElementsByTagName('core-ajax')[0];
+            var sender = this.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0];
 
             sender.addEventListener('core-complete', function(event) {
                 this.fire('submitted', event.detail.xhr);
@@ -270,7 +270,7 @@
          * @param HTMLFormElement form
          */
         sendUrlencodedForm = function(form){
-            var sender = this.shadowRoot.getElementsByTagName('core-ajax')[0],
+            var sender = this.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0],
                 // We must URL encode the data and place it in the body or
                 // query paramter section of the URI (depending on the method).
                 // core-ajax attempts to do this for us, but this requires we pass
@@ -298,7 +298,7 @@
          * @param HTMLFormElement form
          */
         sendMultipartForm = function(form) {
-            var sender = this.shadowRoot.getElementsByTagName('core-ajax')[0],
+            var sender = this.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0],
                 data = parseFormData(form);
 
             // make sure Polymer/core-ajax doesn't touch the Content-Type.
