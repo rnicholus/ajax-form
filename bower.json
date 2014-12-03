@@ -1,6 +1,6 @@
 {
   "name": "ajax-form",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "authors": [
     "Ray Nicholus"
   ],
@@ -18,8 +18,5 @@
   "dependencies": {
     "core-ajax": "Polymer/core-ajax#~0.5.1",
     "polymer": "Polymer/polymer#~0.5.1"
-  },
-  "devDependencies": {
-    "bind-polyfill": "*"
   }
 }

@@ -51,7 +51,7 @@
         "FormData",
         "it",
         "setTimeout",
-        "spyOn",
-        "window"
+        "window",
+        "module"
     ]
 }
