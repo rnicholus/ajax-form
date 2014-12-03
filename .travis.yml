@@ -1,5 +1,5 @@
 addons:
-  firefox: '30.0'
+  firefox: '34.0'
 language: node_js
 node_js:
 - '0.10'
