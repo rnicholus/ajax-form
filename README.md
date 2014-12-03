@@ -20,6 +20,7 @@ See the [component page](http://garstasio.github.io/ajax-form/components/ajax-fo
 ```
 npm install
 npm install -g grunt-cli
+bower update
 grunt
 ```
 
