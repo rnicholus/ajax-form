@@ -8,14 +8,14 @@ module.exports = function(grunt) {
         pkg: grunt.file.readJSON('package.json'),
         jshint: config('jshint'),
         'wct-test': {
-            local: {
-                options: {remote: false}
+            desktop: {
+                options: {
+                    browsers: ['chrome', 'firefox', 'safari'],
+                    remote: false
+                }
             },
             remote: {
                 options: {remote: true}
-            },
-            travis: {
-                options: {browsers: ['firefox']}
             }
         },
         watch: {
@@ -30,6 +30,6 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-watch');
 
 
-    grunt.registerTask('default', ['jshint', 'wct-test:local']);
-    grunt.registerTask('travis', ['jshint', 'wct-test:travis']);
+    grunt.registerTask('default', ['jshint', 'wct-test:desktop']);
+    grunt.registerTask('travis', ['jshint', 'wct-test:remote']);
 };

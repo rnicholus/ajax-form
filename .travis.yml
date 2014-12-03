@@ -5,9 +5,10 @@ node_js:
 - '0.10'
 before_install:
 - npm install -g grunt-cli
-- npm install -g web-component-tester
-- export DISPLAY=:99.0
-- sh -e /etc/init.d/xvfb start
 script:
 - bower install
 - grunt travis
+env:
+  global:
+  - secure: rvRcNshNze/8zhMJd3Rhiv+N9u46ljNwAuE6MtpNSaNz+jLC5e7LOXV8dyPdb3ROzDql8SztpMscaEInDvqq+JvC3W0hCYd34WAQt0ZkW0udKs0tbnkNN9dFx1gTfQFsDceTiy1D7d8fQepbeSjOn9N5M1uSUCPdTw5vMFhGFEs=
+  - secure: ed/OB9OuOsagOo3mGd39wuE8jfHv2w09olfWMeyvmYkSoGXg0EcvYdggXAkwBAlzYbm7Tm3Mwa51BmI7O8lB5iq7X/m8ILYiKJ9nksFWEANaNWV7Px6j7EvWvjppQY1H8g7x3P6VBXIJ06+LHO0LThLIDEteAae0CVuq4vap1Vg=
