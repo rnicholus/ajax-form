@@ -14,8 +14,8 @@ module.exports = function(grunt) {
             remote: {
                 options: {remote: true}
             },
-            chrome: {
-                options: {browsers: ['chrome']}
+            travis: {
+                options: {browsers: ['firefox']}
             }
         },
         watch: {
@@ -31,5 +31,5 @@ module.exports = function(grunt) {
 
 
     grunt.registerTask('default', ['jshint', 'wct-test:local']);
-    grunt.registerTask('travis', ['jshint', 'wct-test:local']);
+    grunt.registerTask('travis', ['jshint', 'wct-test:travis']);
 };

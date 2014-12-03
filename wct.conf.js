@@ -2,5 +2,5 @@
 // firefox 33               Beginning tests via http://localhost:59238/ajax-form%5Ctest%5Cindex.html?cli_browser_id=2
 
 module.exports = {
-    browsers: ['chrome', 'ie']
+    browsers: ['chrome']
 };
