@@ -17,10 +17,14 @@ See the [component page](http://garstasio.github.io/ajax-form/components/ajax-fo
 
 
 ## Testing
-Install web-component-tester:
+```
+npm install
+npm install -g grunt-cli
+grunt
+```
 
-`npm install -g web-component-tester`
+- Running `grunt` without any parameters will test against a few locally installed browsers (see the codebase for details).  
 
-Run tests with grunt tasks `wct-test:[local/remote/chrome]`, typing `wct` in the terminal, or starting a server and visiting `localhost:<port>/test/index.html`
+- Running `grunt wct-test:remote` will run tests against a number of browsers in SauceLabs.  Ensure you have your SauceLabs username and key attached to the proper environment variables first.
 
-See [documentation](https://github.com/Polymer/web-component-tester) for details
+See [documentation](https://github.com/Polymer/web-component-tester) for more details.
