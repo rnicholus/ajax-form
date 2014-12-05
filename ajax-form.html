@@ -32,7 +32,17 @@ form elements.
 3. Prevention of a page reload/redirect on submit.
 4. The ability to include the [`<file-input>` custom element](https://github.com/garstasio/file-input) as a `<form>` field.
 
-### Integation with `<file-input>` custom element
+### Submitting
+Submit your form just as you would any other form.  For example:
+1. Via an `<input type="submit">`.
+2. Via a `<button type="submit">`.
+3. By calling `submit()` on the `<form>` element.
+
+If you are, for example, using a [`<paper-button>`](https://www.polymer-project.org/docs/elements/paper-elements.html#paper-button),
+you'll need to [attach a click handler to the button](https://github.com/garstasio/ajax-form/issues/27#issuecomment-64512558)
+and submit the form when this handler is invoked.
+
+### Integration with `<file-input>` custom element
 Want a better `<input type="file">` element that can be easily styled, has built-in,
 customizable validation, and provides an improved API?  Check out the [`<file-input>` custom element](https://github.com/garstasio/file-input).
 `ajax-form` allows `<file-input>` custom element to be submitted along with other standard
