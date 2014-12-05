@@ -12,13 +12,14 @@
 
     <link rel="import" href="../../polymer/polymer.html">
     <link rel="import" href="../../core-ajax/core-ajax.html">
+    <link rel="import" href="../../file-input/file-input.html">
     <link rel="import" href="../ajax-form.html">
 </head>
 
 <body>
 
     <!-- You use the document as a place to set up your fixtures. -->
-    <form is="ajax-form" method="post" action="test">
+    <form is="ajax-form" id="typicalForm" method="post" action="test">
         <input name="test1" type="text" value="foobar"/>
         <input name="test2" type="text"/>
         <input name="test3" type="text"/>
@@ -27,14 +28,20 @@
         <my-ce2></my-ce2>
     </form>
 
+    <form is="ajax-form" id="requiredFileInputForm" method="post" action="test">
+        <file-input required></file-input>
+    </form>
+
     <script>
-        var testForm = document.querySelector('form');
+        var testForm = document.querySelector('#typicalForm'),
+            requiredFileInputForm = document.querySelector('#requiredFileInputForm');
         document.querySelector('my-ce1').value = 'ce1value';
 
         describe('Validate environment', function() {
             it('Make sure Polymer and ajax-form are alive', function() {
                 expect(ajaxForm).to.exist;
                 expect(testForm).to.exist;
+                expect(requiredFileInputForm).to.exist;
                 expect(Polymer).to.exist;
             });
         });
@@ -86,17 +93,19 @@
                 clock = sinon.useFakeTimers();
 
                 testForm.setAttribute('method', 'post');
+                requiredFileInputForm.setAttribute('method', 'post');
                 sinon.spy(testForm, 'fire');
+                sinon.spy(requiredFileInputForm, 'fire');
             });
 
             afterEach(function() {
                 testForm.fire.restore();
+                requiredFileInputForm.fire.restore();
                 clock.restore();
             });
 
-            it('ensures invalid fields are idenitified and presented via a single event', function() {
+            it('ensures invalid fields are identified and presented via a single event', function() {
                 var textInput1 = testForm.querySelector('input[name=test1]'),
-                    textInput2 = testForm.querySelector('input[name=test2]'),
                     textInput3 = testForm.querySelector('input[name=test3]');
 
                 ajaxForm.domReady.call(testForm);
@@ -112,6 +121,22 @@
 
                 expect(testForm.fire).to.have.been.calledWith('invalid', [textInput1, textInput3]);
             });
+
+            it('identifies invalid custom element fields with shadowed native form fields too', function() {
+                var fileInput = requiredFileInputForm.querySelector('file-input');
+
+                ajaxForm.domReady.call(requiredFileInputForm);
+
+                requiredFileInputForm.submit();
+
+                clock.tick(10); // give it some time to process
+
+                expect(requiredFileInputForm.fire).to.have.been.calledWith('invalid');
+                var fireCall = requiredFileInputForm.fire.getCall(0);
+                expect(fireCall.args[1][0].tagName).to.equal('FILE-INPUT');
+
+                expect(requiredFileInputForm.checkValidity()).to.equal(false);
+            })
         });
 
         describe('submit interception', function() {

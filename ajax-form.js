@@ -2,7 +2,7 @@
     var arrayOf = function(pseudoArray) {
             return Array.prototype.slice.call(pseudoArray);
         },
-    
+
         getValidMethod = function(method) {
             if (method) {
                 var proposedMethod = method.toUpperCase();
@@ -70,7 +70,7 @@
                 customElement.tagName.toLowerCase() === 'paper-dropdown-menu') {
                 var coreMenu = customElement.getElementsByTagName('core-menu')[0],
                     selectedItem = coreMenu && coreMenu.selectedItem;
-                    
+
                 if (selectedItem) {
                     data[customElement.getAttribute('name')] = selectedItem.label || selectedItem.textContent;
                     return true;
@@ -263,7 +263,7 @@
         sendUrlencodedForm = function(ajaxForm) {
             var sender = ajaxForm.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0],
                 // We must URL encode the data and place it in the body or
-                // query paramter section of the URI (depending on the method).
+                // query parameter section of the URI (depending on the method).
                 // core-ajax attempts to do this for us, but this requires we pass
                 // an Object to core-ajax with the params and we cannot properly
                 // express multiple values for a <select> (which is possible)
@@ -327,11 +327,11 @@
         watchForInvalidFields = function(ajaxForm, existingEventListeners) {
             var initialFields = arrayOf(ajaxForm.querySelectorAll(':invalid, :valid')),
                 invalidFields = [],
-                
+
                 listenForInvalidEvent = function(field) {
                     field.willValidate && field.addEventListener('invalid', function() {
                         invalidFields.push(field.customElementRef || field);
-        
+
                         // In case another element is invalid and the event
                         // hasn't been triggered yet, hold off on firing the
                         // invalid event on the custom el.
@@ -343,7 +343,7 @@
                         }, 10);
                     });
                 },
-                
+
                 // Be sure to observe any validatable form fields added in the future
                 mutationHandler = function(observer, records) {
                     records.forEach(function(record) {
@@ -353,10 +353,10 @@
                             });
                         }
                     });
-                    
+
                     ajaxForm.onMutation(ajaxForm, mutationHandler);
                 },
-                
+
                 timer = null;
 
             initialFields.forEach(function(field) {
@@ -376,7 +376,7 @@
 
         domReady: function() {
             var ajaxForm = this;
-            
+
             // The method attribute set on the light-DOM `<form>`
             // can't seem to be accessed as a property of this element,
             // unlike other attributes.  Perhaps due to the fact that
