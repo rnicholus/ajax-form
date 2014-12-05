@@ -3,6 +3,12 @@
             return Array.prototype.slice.call(pseudoArray);
         },
 
+        getEnctype = function(ajaxForm) {
+            var enctype = ajaxForm.getAttribute('enctype');
+
+            return enctype || 'application/x-www-form-urlencoded';
+        },
+
         getValidMethod = function(method) {
             if (method) {
                 var proposedMethod = method.toUpperCase();
@@ -25,16 +31,23 @@
 
                 // respect any field validation attributes
                 if (ajaxForm.checkValidity()) {
+                    var enctype = getEnctype(ajaxForm);
+
                     ajaxForm.fire('submitting');
-                    if ('multipart/form-data' !== ajaxForm.enctype) {
+                    if ('multipart/form-data' !== enctype &&
+                        'application/json' !== enctype) {
+
                         sendUrlencodedForm(ajaxForm);
                     }
                     else {
                         if ('GET' === ajaxForm.acceptableMethod) {
                             sendUrlencodedForm(ajaxForm);
                         }
-                        else {
+                        else if ('multipart/form-data' === enctype) {
                             sendMultipartForm(ajaxForm);
+                        }
+                        else if ('application/json' === enctype) {
+                            sendJsonEncodedForm(ajaxForm);
                         }
                     }
                 }
@@ -256,31 +269,16 @@
             return formObj;
         },
 
-        /**
-         * Send a url-encoded `HTMLFormElement` in the URL query string.
-         * @param HTMLFormElement form
-         */
-        sendUrlencodedForm = function(ajaxForm) {
+        sendJsonEncodedForm = function(ajaxForm) {
             var sender = ajaxForm.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0],
-                // We must URL encode the data and place it in the body or
-                // query parameter section of the URI (depending on the method).
-                // core-ajax attempts to do this for us, but this requires we pass
-                // an Object to core-ajax with the params and we cannot properly
-                // express multiple values for a <select> (which is possible)
-                // via a JavaScript Object.
-                data = toQueryString(parseForm(ajaxForm));
+                data = parseForm(ajaxForm);
 
             if (ajaxForm.cookies) {
                 sender.withCredentials = true;
             }
 
-            if (ajaxForm.acceptableMethod === 'POST') {
-                sender.body = data;
-            }
-            else {
-                sender.url += (sender.url.indexOf('?') > 0 ? '&' : '?') + data;
-            }
-
+            sender.contentType = getEnctype(ajaxForm);
+            sender.body = JSON.stringify(data);
             sender.go();
         },
 
@@ -301,6 +299,34 @@
             }
 
             sender.body = data;
+            sender.go();
+        },
+
+        /**
+         * Send a url-encoded `HTMLFormElement` in the URL query string.
+         * @param HTMLFormElement form
+         */
+        sendUrlencodedForm = function(ajaxForm) {
+            var sender = ajaxForm.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0],
+            // We must URL encode the data and place it in the body or
+            // query parameter section of the URI (depending on the method).
+            // core-ajax attempts to do this for us, but this requires we pass
+            // an Object to core-ajax with the params and we cannot properly
+            // express multiple values for a <select> (which is possible)
+            // via a JavaScript Object.
+                data = toQueryString(parseForm(ajaxForm));
+
+            if (ajaxForm.cookies) {
+                sender.withCredentials = true;
+            }
+
+            if (ajaxForm.acceptableMethod === 'POST') {
+                sender.body = data;
+            }
+            else {
+                sender.url += (sender.url.indexOf('?') > 0 ? '&' : '?') + data;
+            }
+
             sender.go();
         },
 
