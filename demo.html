@@ -66,7 +66,7 @@
                 </div>
                 
                 <div>
-                    <label>Favorie color: <input type="text" name="color"></label>
+                    <label>Favorite color: <input type="text" name="color"></label>
                 </div>
     
                 <div>
@@ -74,7 +74,7 @@
                     <input type="radio" name="emailCommunication" value="yes" checked>yes
                     <input type="radio" name="emailCommunication" value="no">no
                 </div>
-                
+
                 <input type="submit">
             </form>
             
@@ -99,7 +99,7 @@
             message will appear and fade in and out continuously until the form has been submitted.</p>
     
             <p>Once the server has processed and responded to the form submit, a "submitted" event
-            will be triggered on the form and the "Sending your data..." message will disapper.
+            will be triggered on the form and the "Sending your data..." message will disappear.
             If submission was successful, a message will replace the form.  If a problem
             occurred, the form will re-appear and an alert will be displayed to the user.
             In each case, the underlying `XMLHttpRequest` instance will be passed to the
@@ -117,9 +117,11 @@
                 alertify.error('Some form fields are invalid!');
             });
             
-            form.addEventListener('submitting', function() {
+            form.addEventListener('submitting', function(event) {
                 document.getElementById('pleaseWait').className = '';
                 content.className = 'hidden';
+                event.detail.raytest = 'foobar';
+                event.detail.color = 'blue';
             });
             
             form.addEventListener('submitted', function(event) {
@@ -137,8 +139,8 @@
     </script>
     
     <script>
-        // This code is only used to mock/intercept HTTP requests associated 
-        // with the form submit.  This is neended since the demo doesn't have 
+        // This code is only used to mock/intercept HTTP requests associated
+        // with the form submit.  This is needed since the demo doesn't have
         // a server to handle these requests.
         (function() {
             sinon.FakeXMLHttpRequest.useFilters = true;

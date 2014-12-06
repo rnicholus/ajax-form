@@ -10,6 +10,8 @@ Also allows the `<file-input>` custom element (and any other custom element form
 that have a `name` attribute and a `value`) to be submitted along with other traditional
 form elements.
 
+Check out the GitHub repository at https://github.com/garstasio/ajax-form.
+
 ### What's wrong with a traditional `<form>`?
 
 1. Form submission changes/reloads the page, and it's not trivial to properly prevent this.
@@ -32,7 +34,17 @@ form elements.
 3. Prevention of a page reload/redirect on submit.
 4. The ability to include the [`<file-input>` custom element](https://github.com/garstasio/file-input) as a `<form>` field.
 
-### Integation with `<file-input>` custom element
+### Submitting
+Submit your form just as you would any other form.  For example:
+1. Via an `<input type="submit">`.
+2. Via a `<button type="submit">`.
+3. By calling `submit()` on the `<form>` element.
+
+If you are, for example, using a [`<paper-button>`](https://www.polymer-project.org/docs/elements/paper-elements.html#paper-button),
+you'll need to [attach a click handler to the button](https://github.com/garstasio/ajax-form/issues/27#issuecomment-64512558)
+and submit the form when this handler is invoked.
+
+### Integration with `<file-input>` custom element
 Want a better `<input type="file">` element that can be easily styled, has built-in,
 customizable validation, and provides an improved API?  Check out the [`<file-input>` custom element](https://github.com/garstasio/file-input).
 `ajax-form` allows `<file-input>` custom element to be submitted along with other standard
@@ -43,15 +55,15 @@ As an added benefit, ONLY valid files (not those that have failed any validation
 will be sent along with the request!
 
 ### Integration with generic custom elements form fields (such as `<paper-input>`)
-You can easily submit a `<paper-input>` or `<core-input>` element.  Just place it 
+You can easily submit a `<paper-input>` or `<core-input>` element.  Just place it
 in your `<ajax-form>`, and be sure it has a `name` attribute.  In fact, any
 custom element form field with a `name` attribute can be handled by `<ajax-form>`,
 provided the value to send to the server is exposed via a `value` property on the
 element.
 
 ### Integration with `<paper-dropdown-menu>` & `<core-dropdown-menu>`
-`<paper-dropdown-menu>` and `<core-dropdown-menu>` elements can be submitted too!  
-Just place one or more of these element in your `<ajax-form>` and be sure 
+`<paper-dropdown-menu>` and `<core-dropdown-menu>` elements can be submitted too!
+Just place one or more of these element in your `<ajax-form>` and be sure
 to include a `name` attribute.
 
 ### Handling the request server-side
@@ -122,11 +134,19 @@ that all of your HTML imports are concatenated into one file.__
 
         /**
          * Invoked after the form has passed all validation checks, and
-         * just before the reuqest is sent.
+         * just before the request is sent.  A JavaScript object representing
+         * the parsed field data will be attached to the `detail.formData` property.
+         * If you would like to modify or add to the form data before it is sent
+         * to the server, do so here by making changes directly to `detail.formData`.
+         *
+         * NOTE: Do not deviate from the flat structure of the data unless the `enctype`
+         * is "application/json".  Doing so for other encoding types may produce surprising
+         * results.
          *
          *     form.addEventListener('submitting',
-         *         function() {
-         *             // submit in progress
+         *         function(event) {
+         *             var formData = event.detail.formData;
+         *             // optionally modify formData...
          *         }
          *     );
          *
@@ -189,6 +209,11 @@ that all of your HTML imports are concatenated into one file.__
          * By default, without an enctype specified, "application/x-www-form-urlencoded"
          * is assumed.  GET requests will not have a body, and the form fields
          * will be URL encoded as URI query parameters.
+         *
+         * Supported enctype values are:
+         * - application/x-www-form-urlencoded
+         * - multipart/form-data
+         * - application/json
          *
          * @attribute enctype
          * @type string

@@ -1,5 +1,19 @@
 (function() {
-    var getValidMethod = function(method) {
+    var arrayOf = function(pseudoArray) {
+            return Array.prototype.slice.call(pseudoArray);
+        },
+
+        getEnctype = function(ajaxForm) {
+            var enctype = ajaxForm.getAttribute('enctype');
+
+            return enctype || 'application/x-www-form-urlencoded';
+        },
+
+        getTransport = function(ajaxForm) {
+            return ajaxForm.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0];
+        },
+
+        getValidMethod = function(method) {
             if (method) {
                 var proposedMethod = method.toUpperCase();
 
@@ -10,9 +24,9 @@
         },
 
         // NOTE: Safari doesn't have any visual indications when submit is blocked
-        interceptSubmit = function() {
+        interceptSubmit = function(ajaxForm) {
             // Intercept submit event
-            this.addEventListener('submit', function(event) {
+            ajaxForm.addEventListener('submit', function(event) {
                 // Stop form submission.  Believe it or not,
                 // both of these are required for some reason,
                 // and returning false doesn't seem to reliably work.
@@ -20,21 +34,10 @@
                 event.stopPropagation();
 
                 // respect any field validation attributes
-                if (this.checkValidity()) {
-                    this.fire('submitting');
-                    if ('multipart/form-data' !== this.enctype) {
-                        sendUrlencodedForm.call(this, this);
-                    }
-                    else {
-                        if ('GET' === this.acceptableMethod) {
-                            sendUrlencodedForm.call(this, this);
-                        }
-                        else {
-                            sendMultipartForm.call(this, this);
-                        }
-                    }
+                if (ajaxForm.checkValidity()) {
+                    sendFormData(ajaxForm);
                 }
-            }.bind(this));
+            });
 
             // Intercept native form submit function.
             // In order to force the browser to highlight the invalid fields,
@@ -42,10 +45,10 @@
             var fakeSubmitEl = document.createElement('input');
             fakeSubmitEl.setAttribute('type', 'submit');
             fakeSubmitEl.style.display = 'none';
-            this.appendChild(fakeSubmitEl);
-            this.submit = function() {
-                if (this.checkValidity()) {
-                    this.fire('submit');
+            ajaxForm.appendChild(fakeSubmitEl);
+            ajaxForm.submit = function() {
+                if (ajaxForm.checkValidity()) {
+                    ajaxForm.fire('submit');
                 }
                 else {
                     fakeSubmitEl.click();
@@ -53,41 +56,40 @@
             };
         },
 
-        listenForAjaxComplete = function() {
-            var sender = this.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0];
+        listenForAjaxComplete = function(ajaxForm) {
+            var sender = getTransport(ajaxForm);
 
             sender.addEventListener('core-complete', function(event) {
-                this.fire('submitted', event.detail.xhr);
-            }.bind(this));
+                 ajaxForm.fire('submitted', event.detail.xhr);
+            });
         },
-        
+
         maybeParseCoreDropdownMenu = function(customElement, data) {
             if (customElement.tagName.toLowerCase() === 'core-dropdown-menu' ||
                 customElement.tagName.toLowerCase() === 'paper-dropdown-menu') {
-                
                 var coreMenu = customElement.getElementsByTagName('core-menu')[0],
                     selectedItem = coreMenu && coreMenu.selectedItem;
-                    
+
                 if (selectedItem) {
                     data[customElement.getAttribute('name')] = selectedItem.label || selectedItem.textContent;
                     return true;
                 }
+
+                return true;
             }
         },
-        
-        maybeParseFileInput = function(customElement, data) {
-            if (customElement.tagName.toLowerCase() === 'file-input') {
-                var fileInputName = customElement.getAttribute('name') || 'files';
-    
-                if (customElement.files.length > 1) {
-                    fileInputName += '[]';
+
+        maybeParseFileInput = function(element, data) {
+            if (element.tagName.toLowerCase() === 'file-input' ||
+                (element.tagName.toLowerCase() === 'input' && element.getAttribute('type') === 'file')) {
+
+                var fileInputName = element.getAttribute('name');
+
+                if (element.files.length) {
+                    data[fileInputName] = arrayOf(element.files);
                 }
-    
-                customElement.files.forEach(function(file) {
-                    data[fileInputName] = file;
-                });
-                
-                return !!customElement.files.length;
+
+                return true;
             }
         },
 
@@ -101,117 +103,13 @@
         parseCustomElements = function(form, parseFileInputs) {
             var data = {};
 
-            Array.prototype.slice.call(form.querySelectorAll('*[name]')).forEach(function(el) {
-                (parseFileInputs && maybeParseFileInput(el, data)) || 
-                maybeParseCoreDropdownMenu(el, data) || 
+            arrayOf(form.querySelectorAll('*[name]')).forEach(function(el) {
+                (parseFileInputs && maybeParseFileInput(el, data)) ||
+                maybeParseCoreDropdownMenu(el, data) ||
                 maybeParseGenericCustomElement(el, data);
             });
 
             return data;
-        },
-
-        // @TODO: should these FormData parse methods be exposed as events
-        // if, say, someone wanted to filter or transform the data in a form
-        // (i.e., radio from yes/no to true/false, or textarea from markdown to
-        // html)?
-        parseFormData = function(form) {
-            var formData = new FormData(form),
-                customElementData = parseCustomElements(form, true);
-
-            if (customElementData) {
-                Object.keys(customElementData).forEach(function(fieldName) {
-                    formData.append(fieldName, customElementData[fieldName]);
-                });
-            }
-
-            return formData;
-
-        },
-
-        /**
-         * Parse an `HTMLRadioElement`'s value, returning the value iff
-         * the element has a present `checked` attribute.
-         *
-         * @param HTMLRadioElement element
-         * @return mixed The element's value
-         */
-        parseRadioElementValue = function(element) {
-            var value;
-            if (element.checked === true) {
-                value = element.value;
-            }
-            return value;
-
-        },
-
-        /**
-         * Parse an `HTMLOptionElement`'s value, returning the value iff
-         * the element has a present `selected` attribute.
-         * @param HTMLOptionElement element
-         * @return mixed The element's value
-         */
-        parseSelectOptionElementValue = function(element) {
-            var elementValue;
-            if (element.selected === true){
-                elementValue = element.value;
-            }
-            return elementValue;
-        },
-
-        /**
-         * Parse an `HTMLOptGroupElement` return the `HTMLOptionElement` that
-         * has a `checked` attribute.
-         * @param HTMLOptGroupElement element
-         * @return mixed The element's value
-         */
-        parseSelectOptgroupElementValue = function(element) {
-            var elementValue;
-            Array.prototype.forEach.call(element.options, function(optionElement){
-                var tempElementValue = parseSelectOptionElementValue(optionElement);
-                if (tempElementValue){
-                    elementValue = tempElementValue;
-                }
-            });
-            return elementValue;
-        },
-
-        /**
-         * Parse an `HTMLSelectElement`'s value.
-         *
-         * @param HTMLSelectElement element
-         * @return mixed The element's selected values
-         */
-        parseSelectElementValues = function(element) {
-            var elementValues = [];
-
-            Array.prototype.forEach.call(element.options, function(optionElement){
-                var tempElementValue = parseSelectOptionElementValue(optionElement);
-                tempElementValue && elementValues.push(tempElementValue);
-            });
-
-            return elementValues;
-        },
-
-        /**
-         * Parse an `HTMLInputElement`'s value.
-         * @param HTMLInputElement element
-         * @return mixed The element's value
-         */
-        parseInputElementValue = function(element){
-            var elementValue,
-                elementType = element.type;
-
-            if (element.disabled === true ||
-                ['submit', 'reset', 'button', 'image'].indexOf(elementType) !== -1) {
-                 // do nothing for these button types
-            }
-            else if (elementType === 'radio') {
-                elementValue = parseRadioElementValue(element);
-            } else {
-                elementValue = element.value;
-            }
-
-            return elementValue;
         },
 
         /**
@@ -229,13 +127,11 @@
             else if (elementTag === 'textarea'){
                 elementValue = element.value;
             }
-            //else if(/select*/.exec(elementTag)) {
             else if (elementTag === 'select') {
                 elementValue = parseSelectElementValues(element);
             }
 
             return elementValue;
-
         },
 
         /**
@@ -243,21 +139,26 @@
          * @param HTMLFormElement form
          * @return Object key, value pairs representing the html form
          */
-        parseForm = function(form) {
+        parseForm = function(form, parseFileInputs) {
             var formObj = {},
                 formElements = form.getElementsByTagName('input'),
-                customElementsData = parseCustomElements(form);
+                customElementsData = parseCustomElements(form, parseFileInputs);
 
-            formElements = Array.prototype.slice.call(formElements);
-            formElements = formElements.concat(Array.prototype.slice.call(form.getElementsByTagName('select')));
-            formElements = formElements.concat(Array.prototype.slice.call(form.getElementsByTagName('textarea')));
+            formElements = arrayOf(formElements);
+            formElements = formElements.concat(arrayOf(form.getElementsByTagName('select')));
+            formElements = formElements.concat(arrayOf(form.getElementsByTagName('textarea')));
 
-            formElements.forEach(function(formElement){
-                var key = formElement.name,
-                    val = parseElementValue(formElement);
+            formElements.forEach(function(formElement) {
+                if (formElement.getAttribute('type') === 'file') {
+                    parseFileInputs && maybeParseFileInput(formElement, formObj);
+                }
+                else {
+                    var key = formElement.name,
+                        val = parseElementValue(formElement);
 
-                if (key && val) {
-                    formObj[key] = val;
+                    if (key && val) {
+                        formObj[key] = val;
+                    }
                 }
             });
 
@@ -269,50 +170,165 @@
         },
 
         /**
-         * Send a url-encoded `HTMLFormElement` in the URL query string.
-         * @param HTMLFormElement form
+         * Parse an `HTMLInputElement`'s value.
+         * @param HTMLInputElement element
+         * @return mixed The element's value
          */
-        sendUrlencodedForm = function(form){
-            var sender = this.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0],
+        parseInputElementValue = function(element){
+            var elementValue,
+                elementType = element.type;
+
+            if (element.disabled === true ||
+                ['submit', 'reset', 'button', 'image'].indexOf(elementType) !== -1) {
+                // do nothing for these button types
+            }
+            else if (elementType === 'radio') {
+                elementValue = parseRadioElementValue(element);
+            } else {
+                elementValue = element.value;
+            }
+
+            return elementValue;
+        },
+
+        /**
+         * Parse an `HTMLRadioElement`'s value, returning the value iff
+         * the element has a present `checked` attribute.
+         *
+         * @param HTMLRadioElement element
+         * @return mixed The element's value
+         */
+        parseRadioElementValue = function(element) {
+            var value;
+            if (element.checked === true) {
+                value = element.value;
+            }
+            return value;
+        },
+
+        /**
+         * Parse an `HTMLOptionElement`'s value, returning the value iff
+         * the element has a present `selected` attribute.
+         * @param HTMLOptionElement element
+         * @return mixed The element's value
+         */
+        parseSelectOptionElementValue = function(element) {
+            var elementValue;
+            if (element.selected === true){
+                elementValue = element.value;
+            }
+            return elementValue;
+        },
+
+        /**
+         * Parse an `HTMLSelectElement`'s value.
+         *
+         * @param HTMLSelectElement element
+         * @return mixed The element's selected values
+         */
+        parseSelectElementValues = function(element) {
+            var elementValues = [];
+
+            arrayOf(element.options, function(optionElement){
+                var tempElementValue = parseSelectOptionElementValue(optionElement);
+                tempElementValue && elementValues.push(tempElementValue);
+            });
+
+            return elementValues;
+        },
+
+        sendFormData = function(ajaxForm) {
+            var enctype = getEnctype(ajaxForm),
+                formData = parseForm(ajaxForm, enctype === 'multipart/form-data'),
+                submittingEvent = ajaxForm.fire('submitting', {formData: formData});
+
+            formData = submittingEvent.detail.formData;
+
+            if ('multipart/form-data' !== enctype &&
+                'application/json' !== enctype) {
+
+                sendUrlencodedForm(ajaxForm, formData);
+            }
+            else {
+                if ('GET' === ajaxForm.acceptableMethod) {
+                    sendUrlencodedForm(ajaxForm, formData);
+                }
+                else if ('multipart/form-data' === enctype) {
+                    sendMultipartForm(ajaxForm, formData);
+                }
+                else if ('application/json' === enctype) {
+                    sendJsonEncodedForm(ajaxForm, formData);
+                }
+            }
+        },
+
+        sendJsonEncodedForm = function(ajaxForm, data) {
+            var sender = getTransport(ajaxForm);
+
+            if (ajaxForm.cookies) {
+                sender.withCredentials = true;
+            }
+
+            sender.contentType = getEnctype(ajaxForm);
+            sender.body = JSON.stringify(data);
+            sender.go();
+        },
+
+        sendMultipartForm = function(ajaxForm, data) {
+            var sender = getTransport(ajaxForm),
+                formData = new FormData();
+
+            Object.keys(data).forEach(function(fieldName) {
+                var fieldValue = data[fieldName];
+
+                if (Array.isArray(fieldValue)) {
+                    if (fieldValue.length > 1) {
+                        fieldName += '[]';
+                    }
+
+                    fieldValue.forEach(function(file) {
+                        formData.append(fieldName, file);
+                    });
+                }
+                else {
+                    formData.append(fieldName, data[fieldName]);
+                }
+            });
+
+            // make sure Polymer/core-ajax doesn't touch the Content-Type.
+            // The browser must set this with the proper multipart boundary ID.
+            sender.contentType = null;
+
+            if (ajaxForm.cookies) {
+                sender.withCredentials = true;
+            }
+
+            sender.body = formData;
+            sender.go();
+        },
+
+        sendUrlencodedForm = function(ajaxForm, formData) {
+            var sender = getTransport(ajaxForm),
+
                 // We must URL encode the data and place it in the body or
-                // query paramter section of the URI (depending on the method).
+                // query parameter section of the URI (depending on the method).
                 // core-ajax attempts to do this for us, but this requires we pass
                 // an Object to core-ajax with the params and we cannot properly
                 // express multiple values for a <select> (which is possible)
                 // via a JavaScript Object.
-                data = toQueryString(parseForm(form));
+                data = toQueryString(formData);
 
-            if (this.cookies) {
+            if (ajaxForm.cookies) {
                 sender.withCredentials = true;
             }
 
-            if (this.acceptableMethod === 'POST') {
+            if (ajaxForm.acceptableMethod === 'POST') {
                 sender.body = data;
             }
             else {
                 sender.url += (sender.url.indexOf('?') > 0 ? '&' : '?') + data;
             }
 
-            sender.go();
-        },
-
-        /**
-         * Send a multipart-encoded `HTMLFormElement` in the request body.
-         * @param HTMLFormElement form
-         */
-        sendMultipartForm = function(form) {
-            var sender = this.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0],
-                data = parseFormData(form);
-
-            // make sure Polymer/core-ajax doesn't touch the Content-Type.
-            // The browser must set this with the proper multipart boundary ID.
-            sender.contentType = null;
-
-            if (this.cookies) {
-                sender.withCredentials = true;
-            }
-
-            sender.body = data;
             sender.go();
         },
 
@@ -334,33 +350,48 @@
             });
 
             return queryParams.join('&');
-        },
+          },
 
-        watchForInvalidFields = function(form) {
-            var customEl = this,
-                fields = form.getElementsByTagName('input'),
+        watchForInvalidFields = function(ajaxForm, existingEventListeners) {
+            var initialFields = arrayOf(ajaxForm.querySelectorAll(':invalid, :valid')),
                 invalidFields = [],
+
+                listenForInvalidEvent = function(field) {
+                    field.willValidate && field.addEventListener('invalid', function() {
+                        invalidFields.push(field.customElementRef || field);
+
+                        // In case another element is invalid and the event
+                        // hasn't been triggered yet, hold off on firing the
+                        // invalid event on the custom el.
+                        clearTimeout(timer);
+                        timer = setTimeout(function() {
+                            ajaxForm.fire('invalid', invalidFields);
+                            invalidFields = [];
+                            console.error('Form submission blocked - constraints violation.');
+                        }, 10);
+                    });
+                },
+
+                // Be sure to observe any validatable form fields added in the future
+                mutationHandler = function(observer, records) {
+                    records.forEach(function(record) {
+                        if (record.addedNodes.length) {
+                            arrayOf(record.addedNodes).forEach(function(addedNode) {
+                                addedNode.willValidate && listenForInvalidEvent(addedNode);
+                            });
+                        }
+                    });
+
+                    ajaxForm.onMutation(ajaxForm, mutationHandler);
+                },
+
                 timer = null;
 
-            fields = Array.prototype.slice.call(fields);
-            fields = fields.concat(Array.prototype.slice.call(form.getElementsByTagName('select')));
-            fields = fields.concat(Array.prototype.slice.call(form.getElementsByTagName('textarea')));
-
-            fields.forEach(function(field) {
-                field.addEventListener('invalid', function() {
-                    invalidFields.push(this);
-
-                    // In case another element is invalid and the event
-                    // hasn't been triggered yet, hold off on firing the
-                    // invalid event on the custom el.
-                    clearTimeout(timer);
-                    timer = setTimeout(function() {
-                        customEl.fire('invalid', invalidFields);
-                        invalidFields = [];
-                        console.error('Form submission blocked - constraints violation.');
-                    }, 10);
-                });
+            initialFields.forEach(function(field) {
+                listenForInvalidEvent(field);
             });
+
+            ajaxForm.onMutation(ajaxForm, mutationHandler);
         };
 
     this.ajaxForm = {
@@ -372,23 +403,23 @@
         cookies: false,
 
         domReady: function() {
+            var ajaxForm = this;
+
             // The method attribute set on the light-DOM `<form>`
             // can't seem to be accessed as a property of this element,
             // unlike other attributes.  Perhaps due to the fact that
             // we are extending a form and a "natural" form also has a
             // method attr?  Perhaps something special about this attr?
             // Need to look into this further.
-            this.acceptableMethod = getValidMethod(this.getAttribute('method'));
+            ajaxForm.acceptableMethod = getValidMethod(ajaxForm.getAttribute('method'));
 
-            if (!this.acceptableMethod) {
+            if (!ajaxForm.acceptableMethod) {
                 throw new Error('Invalid method!');
             }
 
-            watchForInvalidFields.call(this, this);
-
-            interceptSubmit.call(this);
-
-            listenForAjaxComplete.call(this);
+            watchForInvalidFields(ajaxForm);
+            interceptSubmit(ajaxForm);
+            listenForAjaxComplete(ajaxForm);
         }
     };
 }());
