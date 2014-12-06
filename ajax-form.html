@@ -69,7 +69,7 @@ Just place one or more of these element in your `<ajax-form>` and be sure
 to include a `name` attribute.
 
 ### Modifying the data to be submitted
-You have an opportunity to do this by registering a "submitted" event handler.  All data
+You have an opportunity to do this by registering a "submitting" event handler.  All data
 in the form, parsed into a JavaScript object (keys = field names, values = field values) will
 be included on the event's `details.formData` property.  You can modify `formData` however you wish.
 Your changes will represent the actual data submitted to your endpoint.  Note that files, if applicable,
