@@ -71,7 +71,7 @@ to include a `name` attribute.
 ### Modifying the data to be submitted
 You have an opportunity to do this by registering a "submitting" event handler.  All data
 in the form, parsed into a JavaScript object (keys = field names, values = field values) will
-be included on the event's `details.formData` property.  You can modify `formData` however you wish.
+be included on the event's `detail.formData` property.  You can modify `formData` however you wish.
 Your changes will represent the actual data submitted to your endpoint.  Note that files, if applicable,
 will be included in this object as well!
 
