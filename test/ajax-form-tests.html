@@ -41,7 +41,7 @@
     </form>
 
     <script>
-        var testForm = document.querySelector('#typicalForm'),
+        var typicalForm = document.querySelector('#typicalForm'),
             requiredFileInputForm = document.querySelector('#requiredFileInputForm'),
             jsonForm = document.querySelector('#jsonForm');
 
@@ -51,7 +51,7 @@
         describe('Validate environment', function() {
             it('Make sure Polymer and ajax-form are alive', function() {
                 expect(ajaxForm).to.exist;
-                expect(testForm).to.exist;
+                expect(typicalForm).to.exist;
                 expect(requiredFileInputForm).to.exist;
                 expect(jsonForm).to.exist;
                 expect(Polymer).to.exist;
@@ -60,43 +60,43 @@
 
         describe('ajax-form method normalization', function() {
             beforeEach(function() {
-                sinon.spy(testForm, 'addEventListener');
+                sinon.spy(typicalForm, 'addEventListener');
             });
 
             afterEach(function() {
-                testForm.addEventListener.restore();
+                typicalForm.addEventListener.restore();
             });
 
             it('throws an error if the method is not set', function() {
-                testForm.removeAttribute('method');
-                expect(ajaxForm.domReady.bind(testForm)).to.throw('Invalid method!');
+                typicalForm.removeAttribute('method');
+                expect(ajaxForm.domReady.bind(typicalForm)).to.throw('Invalid method!');
             });
 
             it('throws an error if the method is not "get", "post" or "put"', function() {
-                testForm.setAttribute('method', 'head');
-                expect(ajaxForm.domReady.bind(testForm)).to.throw('Invalid method!');
+                typicalForm.setAttribute('method', 'head');
+                expect(ajaxForm.domReady.bind(typicalForm)).to.throw('Invalid method!');
             });
 
             // Ensure 'submit' event is added via addEventListener for post, put, and get methods
             it('adds a listener to squelch submit events if the method is "post"', function() {
-                testForm.setAttribute('method', 'post');
-                ajaxForm.domReady.call(testForm);
+                typicalForm.setAttribute('method', 'post');
+                ajaxForm.domReady.call(typicalForm);
 
-                expect(testForm.addEventListener).to.have.been.calledWith('submit');
+                expect(typicalForm.addEventListener).to.have.been.calledWith('submit');
             });
 
             it('adds a listener to squelch submit events if the method is "put"', function() {
-                testForm.setAttribute('method', 'put');
-                ajaxForm.domReady.call(testForm);
+                typicalForm.setAttribute('method', 'put');
+                ajaxForm.domReady.call(typicalForm);
 
-                expect(testForm.addEventListener).to.have.been.calledWith('submit');
+                expect(typicalForm.addEventListener).to.have.been.calledWith('submit');
             });
 
             it('adds a listener to squelch submit events if the method is "get"', function() {
-                testForm.setAttribute('method', 'get');
-                ajaxForm.domReady.call(testForm);
+                typicalForm.setAttribute('method', 'get');
+                ajaxForm.domReady.call(typicalForm);
 
-                expect(testForm.addEventListener).to.have.been.calledWith('submit');
+                expect(typicalForm.addEventListener).to.have.been.calledWith('submit');
             });
         });
 
@@ -104,23 +104,23 @@
             beforeEach(function() {
                 clock = sinon.useFakeTimers();
 
-                testForm.setAttribute('method', 'post');
+                typicalForm.setAttribute('method', 'post');
                 requiredFileInputForm.setAttribute('method', 'post');
-                sinon.spy(testForm, 'fire');
+                sinon.spy(typicalForm, 'fire');
                 sinon.spy(requiredFileInputForm, 'fire');
             });
 
             afterEach(function() {
-                testForm.fire.restore();
+                typicalForm.fire.restore();
                 requiredFileInputForm.fire.restore();
                 clock.restore();
             });
 
             it('ensures invalid fields are identified and presented via a single event', function() {
-                var textInput1 = testForm.querySelector('input[name=test1]'),
-                    textInput3 = testForm.querySelector('input[name=test3]');
+                var textInput1 = typicalForm.querySelector('input[name=test1]'),
+                    textInput3 = typicalForm.querySelector('input[name=test3]');
 
-                ajaxForm.domReady.call(testForm);
+                ajaxForm.domReady.call(typicalForm);
 
                 var inputInvalidEvent = document.createEvent('Event');
                 inputInvalidEvent.initEvent('invalid', true, true);
@@ -131,7 +131,7 @@
                 textInput3.dispatchEvent(inputInvalidEvent);
                 clock.tick(10); // give it some time to process
 
-                expect(testForm.fire).to.have.been.calledWith('invalid', [textInput1, textInput3]);
+                expect(typicalForm.fire).to.have.been.calledWith('invalid', [textInput1, textInput3]);
             });
 
             it('identifies invalid custom element fields with shadowed native form fields too', function() {
@@ -153,47 +153,47 @@
 
         describe('submit interception', function() {
             beforeEach(function () {
-                sinon.spy(testForm, 'fire');
+                sinon.spy(typicalForm, 'fire');
             });
 
             afterEach(function () {
-                testForm.fire.restore();
+                typicalForm.fire.restore();
             });
 
             it('submit method is overridden', function () {
-                testForm.submit();
+                typicalForm.submit();
 
-                expect(testForm.fire).to.have.been.calledWith('submit');
+                expect(typicalForm.fire).to.have.been.calledWith('submit');
             });
         });
 
         describe('url encoding', function() {
             beforeEach(function() {
-                sinon.stub(testForm, 'checkValidity').returns(true);
+                sinon.stub(typicalForm, 'checkValidity').returns(true);
             });
 
             afterEach(function() {
-                testForm.checkValidity.restore();
+                typicalForm.checkValidity.restore();
             });
 
             it('url encodes the form fields and includes them in query string for GET requests', function() {
-                testForm.setAttribute('method', 'GET');
-                var testFormAjax = testForm.shadowRoot.querySelector('core-ajax');
+                typicalForm.setAttribute('method', 'GET');
+                var testFormAjax = typicalForm.shadowRoot.querySelector('core-ajax');
 
-                ajaxForm.domReady.call(testForm);
+                ajaxForm.domReady.call(typicalForm);
 
-                testForm.submit();
+                typicalForm.submit();
 
                 expect(testFormAjax.url).to.have.string('test1=foobar&ce1name=ce1value');
             });
 
             it('url encodes the form fields and includes them in the payload for POST requests', function() {
-                testForm.setAttribute('method', 'POST');
-                var testFormAjax = testForm.shadowRoot.querySelector('core-ajax');
+                typicalForm.setAttribute('method', 'POST');
+                var testFormAjax = typicalForm.shadowRoot.querySelector('core-ajax');
 
-                ajaxForm.domReady.call(testForm);
+                ajaxForm.domReady.call(typicalForm);
 
-                testForm.submit();
+                typicalForm.submit();
 
                 expect(testFormAjax.contentType).to.equal('application/x-www-form-urlencoded');
                 expect(testFormAjax.body).to.equal('test1=foobar&ce1name=ce1value');
@@ -201,16 +201,7 @@
         });
 
         describe('JSON encoding', function() {
-            beforeEach(function() {
-                sinon.stub(jsonForm, 'checkValidity').returns(true);
-            });
-
-            afterEach(function() {
-                jsonForm.checkValidity.restore();
-            });
-
             it('JSON encodes the form fields and includes them in the payload', function() {
-                testForm.setAttribute('method', 'POST');
                 var jsonFormAjax = jsonForm.shadowRoot.querySelector('core-ajax');
 
                 ajaxForm.domReady.call(jsonForm);
@@ -218,6 +209,91 @@
 
                 expect(jsonFormAjax.contentType).to.equal('application/json');
                 expect(jsonFormAjax.body).to.equal(JSON.stringify({test1:'foobar', ce1name:'ce1value'}));
+            });
+        });
+
+        describe('Submit data modification', function() {
+            afterEach(function() {
+
+            });
+
+            it('Allows JSON encoded data to be augmented before it is submitted', function() {
+                var jsonFormAjax = jsonForm.shadowRoot.querySelector('core-ajax'),
+                    submittedListener = function(event) {
+                        event.detail.formData.newfield = 'newval';
+                        event.detail.formData.test1 = 'changedval';
+                    };
+
+                ajaxForm.domReady.call(jsonForm);
+
+                jsonForm.addEventListener('submitting', submittedListener);
+
+                jsonForm.submit();
+
+                jsonForm.removeEventListener('submitting', submittedListener);
+
+                expect(jsonFormAjax.body).to.equal(JSON.stringify({test1:'changedval', ce1name:'ce1value', newfield:'newval'}));
+            });
+
+            it('Allows JSON encoded data to be restructured before it is submitted', function() {
+                var jsonFormAjax = jsonForm.shadowRoot.querySelector('core-ajax');
+
+                ajaxForm.domReady.call(jsonForm);
+
+                jsonForm.addEventListener('submitting', function(event) {
+                    var oldData = event.detail.formData;
+                    event.detail.formData = {
+                        testfields: {
+                            test1: oldData.test1
+                        },
+                        cefields: {
+                            ce1name: oldData.ce1name
+                        }
+                    };
+                });
+
+                jsonForm.submit();
+
+                expect(jsonFormAjax.body).to.equal(JSON.stringify({
+                    testfields: {
+                        test1: 'foobar'
+                    },
+                    cefields: {
+                        ce1name: 'ce1value'
+                    }
+                }));
+            });
+
+            it('Allows URL-encoded data to be augmented before it is submitted (GET)', function() {
+                typicalForm.setAttribute('method', 'GET');
+                var testFormAjax = typicalForm.shadowRoot.querySelector('core-ajax');
+
+                ajaxForm.domReady.call(typicalForm);
+
+                typicalForm.addEventListener('submitting', function(event) {
+                    event.detail.formData.newfield = 'newval';
+                    event.detail.formData.test1 = 'changedval';
+                });
+
+                typicalForm.submit();
+
+                expect(testFormAjax.url).to.have.string('test1=changedval&ce1name=ce1value&newfield=newval');
+            });
+
+            it('Allows URL-encoded data to be augmented before it is submitted (POST)', function() {
+                typicalForm.setAttribute('method', 'POST');
+                var testFormAjax = typicalForm.shadowRoot.querySelector('core-ajax');
+
+                ajaxForm.domReady.call(typicalForm);
+
+                typicalForm.addEventListener('submitting', function(event) {
+                    event.detail.formData.newfield = 'newval';
+                    event.detail.formData.test1 = 'changedval';
+                });
+
+                typicalForm.submit();
+
+                expect(testFormAjax.body).to.equal('test1=changedval&ce1name=ce1value&newfield=newval');
             });
         });
 

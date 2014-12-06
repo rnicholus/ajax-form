@@ -9,6 +9,10 @@
             return enctype || 'application/x-www-form-urlencoded';
         },
 
+        getTransport = function(ajaxForm) {
+            return ajaxForm.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0];
+        },
+
         getValidMethod = function(method) {
             if (method) {
                 var proposedMethod = method.toUpperCase();
@@ -31,25 +35,7 @@
 
                 // respect any field validation attributes
                 if (ajaxForm.checkValidity()) {
-                    var enctype = getEnctype(ajaxForm);
-
-                    ajaxForm.fire('submitting');
-                    if ('multipart/form-data' !== enctype &&
-                        'application/json' !== enctype) {
-
-                        sendUrlencodedForm(ajaxForm);
-                    }
-                    else {
-                        if ('GET' === ajaxForm.acceptableMethod) {
-                            sendUrlencodedForm(ajaxForm);
-                        }
-                        else if ('multipart/form-data' === enctype) {
-                            sendMultipartForm(ajaxForm);
-                        }
-                        else if ('application/json' === enctype) {
-                            sendJsonEncodedForm(ajaxForm);
-                        }
-                    }
+                    sendFormData(ajaxForm);
                 }
             });
 
@@ -71,7 +57,7 @@
         },
 
         listenForAjaxComplete = function(ajaxForm) {
-            var sender = ajaxForm.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0];
+            var sender = getTransport(ajaxForm);
 
             sender.addEventListener('core-complete', function(event) {
                  ajaxForm.fire('submitted', event.detail.xhr);
@@ -93,17 +79,15 @@
             }
         },
 
-        maybeParseFileInput = function(customElement, data) {
-            if (customElement.tagName.toLowerCase() === 'file-input') {
-                var fileInputName = customElement.getAttribute('name') || 'files';
+        maybeParseFileInput = function(element, data) {
+            if (element.tagName.toLowerCase() === 'file-input' ||
+                (element.tagName.toLowerCase() === 'input' && element.getAttribute('type') === 'file')) {
 
-                if (customElement.files.length > 1) {
-                    fileInputName += '[]';
+                var fileInputName = element.getAttribute('name');
+
+                if (element.files.length) {
+                    data[fileInputName] = arrayOf(element.files);
                 }
-
-                customElement.files.forEach(function(file) {
-                    data[fileInputName] = file;
-                });
 
                 return true;
             }
@@ -128,22 +112,83 @@
             return data;
         },
 
-        // @TODO: should these FormData parse methods be exposed as events
-        // if, say, someone wanted to filter or transform the data in a form
-        // (i.e., radio from yes/no to true/false, or textarea from markdown to
-        // html)?
-        parseFormData = function(form) {
-            var formData = new FormData(form),
-                customElementData = parseCustomElements(form, true);
+        /**
+         * Return the value of some `HTMLElement`s  value attribute if possible.
+         * @param HTMLElement element
+         * @return mixed The element's value attribute
+         */
+        parseElementValue = function(element){
+            var elementValue,
+                elementTag = element.tagName.toLowerCase();
 
-            if (customElementData) {
-                Object.keys(customElementData).forEach(function(fieldName) {
-                    formData.append(fieldName, customElementData[fieldName]);
-                });
+            if (elementTag === 'input') {
+                elementValue = parseInputElementValue(element);
+            }
+            else if (elementTag === 'textarea'){
+                elementValue = element.value;
+            }
+            else if (elementTag === 'select') {
+                elementValue = parseSelectElementValues(element);
             }
 
-            return formData;
+            return elementValue;
+        },
 
+        /**
+         * Parse an `HTMLFormElement` into key value pairs
+         * @param HTMLFormElement form
+         * @return Object key, value pairs representing the html form
+         */
+        parseForm = function(form, parseFileInputs) {
+            var formObj = {},
+                formElements = form.getElementsByTagName('input'),
+                customElementsData = parseCustomElements(form, parseFileInputs);
+
+            formElements = arrayOf(formElements);
+            formElements = formElements.concat(arrayOf(form.getElementsByTagName('select')));
+            formElements = formElements.concat(arrayOf(form.getElementsByTagName('textarea')));
+
+            formElements.forEach(function(formElement) {
+                if (formElement.getAttribute('type') === 'file') {
+                    parseFileInputs && maybeParseFileInput(formElement, formObj);
+                }
+                else {
+                    var key = formElement.name,
+                        val = parseElementValue(formElement);
+
+                    if (key && val) {
+                        formObj[key] = val;
+                    }
+                }
+            });
+
+            Object.keys(customElementsData).forEach(function(fieldName) {
+                formObj[fieldName] = customElementsData[fieldName];
+            });
+
+            return formObj;
+        },
+
+        /**
+         * Parse an `HTMLInputElement`'s value.
+         * @param HTMLInputElement element
+         * @return mixed The element's value
+         */
+        parseInputElementValue = function(element){
+            var elementValue,
+                elementType = element.type;
+
+            if (element.disabled === true ||
+                ['submit', 'reset', 'button', 'image'].indexOf(elementType) !== -1) {
+                // do nothing for these button types
+            }
+            else if (elementType === 'radio') {
+                elementValue = parseRadioElementValue(element);
+            } else {
+                elementValue = element.value;
+            }
+
+            return elementValue;
         },
 
         /**
@@ -159,7 +204,6 @@
                 value = element.value;
             }
             return value;
-
         },
 
         /**
@@ -193,85 +237,33 @@
             return elementValues;
         },
 
-        /**
-         * Parse an `HTMLInputElement`'s value.
-         * @param HTMLInputElement element
-         * @return mixed The element's value
-         */
-        parseInputElementValue = function(element){
-            var elementValue,
-                elementType = element.type;
+        sendFormData = function(ajaxForm) {
+            var enctype = getEnctype(ajaxForm),
+                formData = parseForm(ajaxForm, enctype === 'multipart/form-data'),
+                submittingEvent = ajaxForm.fire('submitting', {formData: formData});
 
-            if (element.disabled === true ||
-                ['submit', 'reset', 'button', 'image'].indexOf(elementType) !== -1) {
-                 // do nothing for these button types
+            formData = submittingEvent.detail.formData;
+
+            if ('multipart/form-data' !== enctype &&
+                'application/json' !== enctype) {
+
+                sendUrlencodedForm(ajaxForm, formData);
             }
-            else if (elementType === 'radio') {
-                elementValue = parseRadioElementValue(element);
-            } else {
-                elementValue = element.value;
-            }
-
-            return elementValue;
-        },
-
-        /**
-         * Return the value of some `HTMLElement`s  value attribute if possible.
-         * @param HTMLElement element
-         * @return mixed The element's value attribute
-         */
-        parseElementValue = function(element){
-            var elementValue,
-                elementTag = element.tagName.toLowerCase();
-
-            if (elementTag === 'input') {
-                elementValue = parseInputElementValue(element);
-            }
-            else if (elementTag === 'textarea'){
-                elementValue = element.value;
-            }
-            //else if(/select*/.exec(elementTag)) {
-            else if (elementTag === 'select') {
-                 elementValue = parseSelectElementValues(element);
-            }
-
-            return elementValue;
-
-        },
-
-        /**
-         * Parse an `HTMLFormElement` into key value pairs
-         * @param HTMLFormElement form
-         * @return Object key, value pairs representing the html form
-         */
-        parseForm = function(form) {
-            var formObj = {},
-                formElements = form.getElementsByTagName('input'),
-                customElementsData = parseCustomElements(form);
-
-            formElements = arrayOf(formElements);
-            formElements = formElements.concat(arrayOf(form.getElementsByTagName('select')));
-            formElements = formElements.concat(arrayOf(form.getElementsByTagName('textarea')));
-
-            formElements.forEach(function(formElement){
-                var key = formElement.name,
-                    val = parseElementValue(formElement);
-
-                if (key && val) {
-                    formObj[key] = val;
+            else {
+                if ('GET' === ajaxForm.acceptableMethod) {
+                    sendUrlencodedForm(ajaxForm, formData);
                 }
-            });
-
-            Object.keys(customElementsData).forEach(function(fieldName) {
-                formObj[fieldName] = customElementsData[fieldName];
-            });
-
-            return formObj;
+                else if ('multipart/form-data' === enctype) {
+                    sendMultipartForm(ajaxForm, formData);
+                }
+                else if ('application/json' === enctype) {
+                    sendJsonEncodedForm(ajaxForm, formData);
+                }
+            }
         },
 
-        sendJsonEncodedForm = function(ajaxForm) {
-            var sender = ajaxForm.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0],
-                data = parseForm(ajaxForm);
+        sendJsonEncodedForm = function(ajaxForm, data) {
+            var sender = getTransport(ajaxForm);
 
             if (ajaxForm.cookies) {
                 sender.withCredentials = true;
@@ -282,13 +274,26 @@
             sender.go();
         },
 
-        /**
-         * Send a multipart-encoded `HTMLFormElement` in the request body.
-         * @param HTMLFormElement form
-         */
-        sendMultipartForm = function(ajaxForm) {
-            var sender = ajaxForm.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0],
-                data = parseFormData(ajaxForm);
+        sendMultipartForm = function(ajaxForm, data) {
+            var sender = getTransport(ajaxForm),
+                formData = new FormData();
+
+            Object.keys(data).forEach(function(fieldName) {
+                var fieldValue = data[fieldName];
+
+                if (Array.isArray(fieldValue)) {
+                    if (fieldValue.length > 1) {
+                        fieldName += '[]';
+                    }
+
+                    fieldValue.forEach(function(file) {
+                        formData.append(fieldName, file);
+                    });
+                }
+                else {
+                    formData.append(fieldName, data[fieldName]);
+                }
+            });
 
             // make sure Polymer/core-ajax doesn't touch the Content-Type.
             // The browser must set this with the proper multipart boundary ID.
@@ -298,23 +303,20 @@
                 sender.withCredentials = true;
             }
 
-            sender.body = data;
+            sender.body = formData;
             sender.go();
         },
 
-        /**
-         * Send a url-encoded `HTMLFormElement` in the URL query string.
-         * @param HTMLFormElement form
-         */
-        sendUrlencodedForm = function(ajaxForm) {
-            var sender = ajaxForm.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0],
-            // We must URL encode the data and place it in the body or
-            // query parameter section of the URI (depending on the method).
-            // core-ajax attempts to do this for us, but this requires we pass
-            // an Object to core-ajax with the params and we cannot properly
-            // express multiple values for a <select> (which is possible)
-            // via a JavaScript Object.
-                data = toQueryString(parseForm(ajaxForm));
+        sendUrlencodedForm = function(ajaxForm, formData) {
+            var sender = getTransport(ajaxForm),
+
+                // We must URL encode the data and place it in the body or
+                // query parameter section of the URI (depending on the method).
+                // core-ajax attempts to do this for us, but this requires we pass
+                // an Object to core-ajax with the params and we cannot properly
+                // express multiple values for a <select> (which is possible)
+                // via a JavaScript Object.
+                data = toQueryString(formData);
 
             if (ajaxForm.cookies) {
                 sender.withCredentials = true;
