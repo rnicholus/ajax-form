@@ -37,6 +37,7 @@ field.
 If your custom field does NOT expose a native HTML form field in the light DOM by
 default, and you want ajax-form to respect validation constraints, then you will
 need to include a little code to account for this.  Here are the steps to follow:
+
 1. Add an opaque, 0x0 `<input type="text">` field to the light DOM, just before your field.
 2. Add a `customElementRef` property to the input, with a value equal to your field.
 3. Ensure the validity of the input always matches the validity of your field.  You can
