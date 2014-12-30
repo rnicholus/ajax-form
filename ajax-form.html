@@ -114,8 +114,8 @@ that all of your HTML imports are concatenated into one file.__
          * the `detail` property of the event passed to your handler.
          *
          *     form.addEventListener('invalid',
-         *         function(e) {
-         *             e.detail.forEach(function(badEl) {
+         *         function(event) {
+         *             event.detail.forEach(function(badEl) {
          *                 // handle invalid element
          *             });
          *          }
@@ -131,7 +131,7 @@ that all of your HTML imports are concatenated into one file.__
          * on the event's `detail` property.
          *
          *     form.addEventListener('submitted',
-         *         function(e) {
+         *         function(event) {
          *             if (event.detail.status > 299) {
          *                 // submit has failed
          *             }
