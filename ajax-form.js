@@ -229,7 +229,7 @@
         parseSelectElementValues = function(element) {
             var elementValues = [];
 
-            arrayOf(element.options, function(optionElement){
+            arrayOf(element.options).forEach(function(optionElement){
                 var tempElementValue = parseSelectOptionElementValue(optionElement);
                 tempElementValue && elementValues.push(tempElementValue);
             });
