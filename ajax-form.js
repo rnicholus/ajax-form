@@ -10,7 +10,7 @@
         },
 
         getTransport = function(ajaxForm) {
-            return ajaxForm.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0];
+            return ajaxForm.shadowRoots['ajax-form'].querySelectorAll('core-ajax')[0];
         },
 
         getValidMethod = function(method) {
@@ -67,7 +67,7 @@
         maybeParseCoreDropdownMenu = function(customElement, data) {
             if (customElement.tagName.toLowerCase() === 'core-dropdown-menu' ||
                 customElement.tagName.toLowerCase() === 'paper-dropdown-menu') {
-                var coreMenu = customElement.getElementsByTagName('core-menu')[0],
+                var coreMenu = customElement.querySelectorAll('core-menu')[0],
                     selectedItem = coreMenu && coreMenu.selectedItem;
 
                 if (selectedItem) {
@@ -141,12 +141,12 @@
          */
         parseForm = function(form, parseFileInputs) {
             var formObj = {},
-                formElements = form.getElementsByTagName('input'),
+                formElements = form.querySelectorAll('input'),
                 customElementsData = parseCustomElements(form, parseFileInputs);
 
             formElements = arrayOf(formElements);
-            formElements = formElements.concat(arrayOf(form.getElementsByTagName('select')));
-            formElements = formElements.concat(arrayOf(form.getElementsByTagName('textarea')));
+            formElements = formElements.concat(arrayOf(form.querySelectorAll('select')));
+            formElements = formElements.concat(arrayOf(form.querySelectorAll('textarea')));
 
             formElements.forEach(function(formElement) {
                 if (formElement.getAttribute('type') === 'file') {
