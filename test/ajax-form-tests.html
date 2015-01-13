@@ -39,8 +39,26 @@
         <my-ce1 id="jsonce" name="ce1name"></my-ce1>
         <my-ce2></my-ce2>
 
-        <select name="test4">
-            <option value="foo">bar</option>
+        <select name="select1">
+            <option value="foo">foo</option>
+            <option value="bar" selected>bar</option>
+        </select>
+
+        <select name="select2" multiple>
+            <option value="foo" selected>foo</option>
+            <option value="bar" selected>bar</option>
+            <option value="fizz">fizz</option>
+        </select>
+
+        <select name="select3">
+            <optgroup label="one">
+                <option value="foo">foo</option>
+                <option value="bar">bar</option>
+            </optgroup>
+            <optgroup label="two">
+                <option value="fizz" selected>fizz</option>
+                <option value="buzz">buzz</option>
+            </optgroup>
         </select>
     </form>
 
@@ -212,7 +230,7 @@
                 jsonForm.submit();
 
                 expect(jsonFormAjax.contentType).to.equal('application/json');
-                expect(jsonFormAjax.body).to.equal(JSON.stringify({test1:'foobar',test4:["foo"],ce1name:'ce1value'}));
+                expect(jsonFormAjax.body).to.equal(JSON.stringify({test1:'foobar', select1:['bar'], select2:['foo', 'bar'], select3:['fizz'], ce1name:'ce1value'}));
             });
         });
 
@@ -236,7 +254,7 @@
 
                 jsonForm.removeEventListener('submitting', submittedListener);
 
-                expect(jsonFormAjax.body).to.equal(JSON.stringify({test1:'changedval', test4:["foo"], ce1name:'ce1value', newfield:'newval'}));
+                expect(jsonFormAjax.body).to.equal(JSON.stringify({test1:'changedval', select1:['bar'], select2:['foo', 'bar'], select3:['fizz'], ce1name:'ce1value', newfield:'newval'}));
             });
 
             it('Allows JSON encoded data to be restructured before it is submitted', function() {
