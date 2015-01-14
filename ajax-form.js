@@ -10,7 +10,7 @@
         },
 
         getTransport = function(ajaxForm) {
-            return ajaxForm.shadowRoots['ajax-form'].querySelectorAll('core-ajax')[0];
+            return ajaxForm.shadowRoots['ajax-form'].querySelector('core-ajax');
         },
 
         getValidMethod = function(method) {
@@ -67,7 +67,7 @@
         maybeParseCoreDropdownMenu = function(customElement, data) {
             if (customElement.tagName.toLowerCase() === 'core-dropdown-menu' ||
                 customElement.tagName.toLowerCase() === 'paper-dropdown-menu') {
-                var coreMenu = customElement.querySelectorAll('core-menu')[0],
+                var coreMenu = customElement.querySelector('core-menu'),
                     selectedItem = coreMenu && coreMenu.selectedItem;
 
                 if (selectedItem) {
