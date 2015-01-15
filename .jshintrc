@@ -52,6 +52,7 @@
         "it",
         "setTimeout",
         "window",
-        "module"
+        "module",
+        "XMLHttpRequest"
     ]
 }

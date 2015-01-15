@@ -1,5 +1,4 @@
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../core-ajax/core-ajax.html">
 <script src="ajax-form.js"></script>
 
 <!--
@@ -98,11 +97,7 @@ that all of your HTML imports are concatenated into one file.__
 <polymer-element name="ajax-form" extends="form" attributes="cookies headers">
 
     <template>
-
         <content></content>
-
-        <core-ajax url={{action}} headers={{headers}} method={{acceptableMethod}}></core-ajax>
-
     </template>
 
     <script>
