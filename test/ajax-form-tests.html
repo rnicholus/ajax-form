@@ -61,14 +61,41 @@
         </select>
     </form>
 
+    <form is="ajax-form" id="formDataForm" method="post" action="test" enctype="multipart/form-data">
+        <input name="test1" type="text" value="foobar"/>
+        <input name="test2" type="text"/>
+        <input name="test3" type="text"/>
+
+        <my-ce1 id="formdatace" name="ce1name"></my-ce1>
+        <my-ce2></my-ce2>
+
+        <select name="select1">
+            <option value="foo">foo</option>
+            <option value="bar" selected>bar</option>
+        </select>
+
+        <select name="select3">
+            <optgroup label="one">
+                <option value="foo">foo</option>
+                <option value="bar">bar</option>
+            </optgroup>
+            <optgroup label="two">
+                <option value="fizz" selected>fizz</option>
+                <option value="buzz">buzz</option>
+            </optgroup>
+        </select>
+    </form>
+
     <script>
         var typicalForm = document.querySelector('#typicalForm'),
             requiredFileInputForm = document.querySelector('#requiredFileInputForm'),
             jsonForm = document.querySelector('#jsonForm'),
+            formDataForm = document.querySelector('#formDataForm'),
             xhr, requests;
 
         document.querySelector('#typicalce').value = 'ce1value';
         document.querySelector('#jsonce').value = 'ce1value';
+        document.querySelector('#formdatace').value = 'ce1value';
 
         describe('Validate environment', function() {
             it('Make sure Polymer and ajax-form are alive', function() {
@@ -76,6 +103,7 @@
                 expect(typicalForm).to.exist;
                 expect(requiredFileInputForm).to.exist;
                 expect(jsonForm).to.exist;
+                expect(formDataForm).to.exist;
                 expect(Polymer).to.exist;
             });
         });
@@ -242,6 +270,34 @@
                     select1:['bar'],
                     select2:['foo', 'bar'],
                     select3:['fizz'],
+                    ce1name:'ce1value'
+                }));
+            });
+        });
+
+        describe('multipart/form-data encoding', function() {
+            var realFormData = window.FormData,
+                appendedData = {};
+
+            beforeEach(function() {
+                window.FormData.prototype.append = function(key, val) {
+                    appendedData[key] = val;
+                }
+            });
+
+            afterEach(function() {
+                window.FormData = realFormData;
+                appendedData = {};
+            });
+
+            it('encodes the form fields and includes them in the payload', function() {
+                ajaxForm.domReady.call(formDataForm);
+                formDataForm.submit();
+
+                expect(JSON.stringify(appendedData)).to.equal(JSON.stringify({
+                    test1:'foobar',
+                    select1:'bar',
+                    select3:'fizz',
                     ce1name:'ce1value'
                 }));
             });
