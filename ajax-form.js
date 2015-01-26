@@ -9,10 +9,6 @@
             return enctype || 'application/x-www-form-urlencoded';
         },
 
-        getTransport = function(ajaxForm) {
-            return ajaxForm.shadowRoots['ajax-form'].getElementsByTagName('core-ajax')[0];
-        },
-
         getValidMethod = function(method) {
             if (method) {
                 var proposedMethod = method.toUpperCase();
@@ -56,18 +52,10 @@
             };
         },
 
-        listenForAjaxComplete = function(ajaxForm) {
-            var sender = getTransport(ajaxForm);
-
-            sender.addEventListener('core-complete', function(event) {
-                 ajaxForm.fire('submitted', event.detail.xhr);
-            });
-        },
-
         maybeParseCoreDropdownMenu = function(customElement, data) {
             if (customElement.tagName.toLowerCase() === 'core-dropdown-menu' ||
                 customElement.tagName.toLowerCase() === 'paper-dropdown-menu') {
-                var coreMenu = customElement.getElementsByTagName('core-menu')[0],
+                var coreMenu = customElement.querySelector('core-menu'),
                     selectedItem = coreMenu && coreMenu.selectedItem;
 
                 if (selectedItem) {
@@ -141,12 +129,12 @@
          */
         parseForm = function(form, parseFileInputs) {
             var formObj = {},
-                formElements = form.getElementsByTagName('input'),
+                formElements = form.querySelectorAll('input'),
                 customElementsData = parseCustomElements(form, parseFileInputs);
 
             formElements = arrayOf(formElements);
-            formElements = formElements.concat(arrayOf(form.getElementsByTagName('select')));
-            formElements = formElements.concat(arrayOf(form.getElementsByTagName('textarea')));
+            formElements = formElements.concat(arrayOf(form.querySelectorAll('select')));
+            formElements = formElements.concat(arrayOf(form.querySelectorAll('textarea')));
 
             formElements.forEach(function(formElement) {
                 if (formElement.getAttribute('type') === 'file') {
@@ -229,7 +217,7 @@
         parseSelectElementValues = function(element) {
             var elementValues = [];
 
-            arrayOf(element.options, function(optionElement){
+            arrayOf(element.options).forEach(function(optionElement){
                 var tempElementValue = parseSelectOptionElementValue(optionElement);
                 tempElementValue && elementValues.push(tempElementValue);
             });
@@ -263,20 +251,15 @@
         },
 
         sendJsonEncodedForm = function(ajaxForm, data) {
-            var sender = getTransport(ajaxForm);
-
-            if (ajaxForm.cookies) {
-                sender.withCredentials = true;
-            }
-
-            sender.contentType = getEnctype(ajaxForm);
-            sender.body = JSON.stringify(data);
-            sender.go();
+            sendRequest({
+                body: JSON.stringify(data),
+                contentType: getEnctype(ajaxForm),
+                form: ajaxForm
+            });
         },
 
         sendMultipartForm = function(ajaxForm, data) {
-            var sender = getTransport(ajaxForm),
-                formData = new FormData();
+            var formData = new FormData();
 
             Object.keys(data).forEach(function(fieldName) {
                 var fieldValue = data[fieldName];
@@ -295,41 +278,47 @@
                 }
             });
 
-            // make sure Polymer/core-ajax doesn't touch the Content-Type.
-            // The browser must set this with the proper multipart boundary ID.
-            sender.contentType = null;
+            sendRequest({
+                body: formData,
+                form: ajaxForm
+            });
+        },
 
-            if (ajaxForm.cookies) {
-                sender.withCredentials = true;
-            }
+        sendRequest = function(options) {
+            var xhr = new XMLHttpRequest();
 
-            sender.body = formData;
-            sender.go();
+            xhr.open(options.form.acceptableMethod, options.url || options.form.action);
+
+            xhr.withCredentials = !!options.form.cookies;
+
+            options.contentType && xhr.setRequestHeader('Content-Type', options.contentType);
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    options.form.fire('submitted', xhr);
+                }
+            };
+
+            xhr.send(options.body);
         },
 
         sendUrlencodedForm = function(ajaxForm, formData) {
-            var sender = getTransport(ajaxForm),
-
-                // We must URL encode the data and place it in the body or
-                // query parameter section of the URI (depending on the method).
-                // core-ajax attempts to do this for us, but this requires we pass
-                // an Object to core-ajax with the params and we cannot properly
-                // express multiple values for a <select> (which is possible)
-                // via a JavaScript Object.
-                data = toQueryString(formData);
-
-            if (ajaxForm.cookies) {
-                sender.withCredentials = true;
-            }
+            var data = toQueryString(formData);
 
             if (ajaxForm.acceptableMethod === 'POST') {
-                sender.body = data;
+                sendRequest({
+                    body: data,
+                    contentType: getEnctype(ajaxForm),
+                    form: ajaxForm
+                });
             }
             else {
-                sender.url += (sender.url.indexOf('?') > 0 ? '&' : '?') + data;
+                sendRequest({
+                    contentType: getEnctype(ajaxForm),
+                    form: ajaxForm,
+                    url: ajaxForm.action + (ajaxForm.action.indexOf('?') > 0 ? '&' : '?') + data,
+                });
             }
-
-            sender.go();
         },
 
         toQueryString = function(params) {
@@ -419,7 +408,6 @@
 
             watchForInvalidFields(ajaxForm);
             interceptSubmit(ajaxForm);
-            listenForAjaxComplete(ajaxForm);
         }
     };
 }());

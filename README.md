@@ -55,7 +55,7 @@ bower update
 grunt
 ```
 
-- Running `grunt` without any parameters will test against a few locally installed browsers (see the codebase for details).  
+- Running `grunt` without any parameters will test against a few locally installed browsers (see the codebase for details).
 
 - Running `grunt wct-test:remote` will run tests against a number of browsers in SauceLabs.  Ensure you have your SauceLabs username and key attached to the proper environment variables first.
 

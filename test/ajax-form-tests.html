@@ -11,7 +11,6 @@
     <script src="../node_modules/web-component-tester/browser.js"></script>
 
     <link rel="import" href="../../polymer/polymer.html">
-    <link rel="import" href="../../core-ajax/core-ajax.html">
     <link rel="import" href="../../file-input/file-input.html">
     <link rel="import" href="../ajax-form.html">
 </head>
@@ -38,15 +37,65 @@
 
         <my-ce1 id="jsonce" name="ce1name"></my-ce1>
         <my-ce2></my-ce2>
+
+        <select name="select1">
+            <option value="foo">foo</option>
+            <option value="bar" selected>bar</option>
+        </select>
+
+        <select name="select2" multiple>
+            <option value="foo" selected>foo</option>
+            <option value="bar" selected>bar</option>
+            <option value="fizz">fizz</option>
+        </select>
+
+        <select name="select3">
+            <optgroup label="one">
+                <option value="foo">foo</option>
+                <option value="bar">bar</option>
+            </optgroup>
+            <optgroup label="two">
+                <option value="fizz" selected>fizz</option>
+                <option value="buzz">buzz</option>
+            </optgroup>
+        </select>
+    </form>
+
+    <form is="ajax-form" id="formDataForm" method="post" action="test" enctype="multipart/form-data">
+        <input name="test1" type="text" value="foobar"/>
+        <input name="test2" type="text"/>
+        <input name="test3" type="text"/>
+
+        <my-ce1 id="formdatace" name="ce1name"></my-ce1>
+        <my-ce2></my-ce2>
+
+        <select name="select1">
+            <option value="foo">foo</option>
+            <option value="bar" selected>bar</option>
+        </select>
+
+        <select name="select3">
+            <optgroup label="one">
+                <option value="foo">foo</option>
+                <option value="bar">bar</option>
+            </optgroup>
+            <optgroup label="two">
+                <option value="fizz" selected>fizz</option>
+                <option value="buzz">buzz</option>
+            </optgroup>
+        </select>
     </form>
 
     <script>
         var typicalForm = document.querySelector('#typicalForm'),
             requiredFileInputForm = document.querySelector('#requiredFileInputForm'),
-            jsonForm = document.querySelector('#jsonForm');
+            jsonForm = document.querySelector('#jsonForm'),
+            formDataForm = document.querySelector('#formDataForm'),
+            xhr, requests;
 
         document.querySelector('#typicalce').value = 'ce1value';
         document.querySelector('#jsonce').value = 'ce1value';
+        document.querySelector('#formdatace').value = 'ce1value';
 
         describe('Validate environment', function() {
             it('Make sure Polymer and ajax-form are alive', function() {
@@ -54,8 +103,22 @@
                 expect(typicalForm).to.exist;
                 expect(requiredFileInputForm).to.exist;
                 expect(jsonForm).to.exist;
+                expect(formDataForm).to.exist;
                 expect(Polymer).to.exist;
             });
+        });
+
+        beforeEach(function() {
+            requests = [];
+            xhr = sinon.useFakeXMLHttpRequest();
+
+            xhr.onCreate = function (xhr) {
+                requests.push(xhr);
+            };
+        });
+
+        afterEach(function() {
+            xhr.restore();
         });
 
         describe('ajax-form method normalization', function() {
@@ -178,48 +241,71 @@
 
             it('url encodes the form fields and includes them in query string for GET requests', function() {
                 typicalForm.setAttribute('method', 'GET');
-                var testFormAjax = typicalForm.shadowRoot.querySelector('core-ajax');
-
                 ajaxForm.domReady.call(typicalForm);
 
                 typicalForm.submit();
 
-                expect(testFormAjax.url).to.have.string('test1=foobar&ce1name=ce1value');
+                expect(requests[0].url).to.have.string('test1=foobar&ce1name=ce1value');
             });
 
             it('url encodes the form fields and includes them in the payload for POST requests', function() {
                 typicalForm.setAttribute('method', 'POST');
-                var testFormAjax = typicalForm.shadowRoot.querySelector('core-ajax');
-
                 ajaxForm.domReady.call(typicalForm);
 
                 typicalForm.submit();
 
-                expect(testFormAjax.contentType).to.equal('application/x-www-form-urlencoded');
-                expect(testFormAjax.body).to.equal('test1=foobar&ce1name=ce1value');
+                expect(requests[0].requestHeaders['Content-Type']).to.have.string('application/x-www-form-urlencoded');
+                expect(requests[0].requestBody).to.equal('test1=foobar&ce1name=ce1value');
             });
         });
 
         describe('JSON encoding', function() {
             it('JSON encodes the form fields and includes them in the payload', function() {
-                var jsonFormAjax = jsonForm.shadowRoot.querySelector('core-ajax');
-
                 ajaxForm.domReady.call(jsonForm);
                 jsonForm.submit();
 
-                expect(jsonFormAjax.contentType).to.equal('application/json');
-                expect(jsonFormAjax.body).to.equal(JSON.stringify({test1:'foobar', ce1name:'ce1value'}));
+                expect(requests[0].requestHeaders['Content-Type']).to.have.string('application/json');
+                expect(requests[0].requestBody).to.equal(JSON.stringify({
+                    test1:'foobar',
+                    select1:['bar'],
+                    select2:['foo', 'bar'],
+                    select3:['fizz'],
+                    ce1name:'ce1value'
+                }));
+            });
+        });
+
+        describe('multipart/form-data encoding', function() {
+            var realFormData = window.FormData,
+                appendedData = {};
+
+            beforeEach(function() {
+                window.FormData.prototype.append = function(key, val) {
+                    appendedData[key] = val;
+                }
+            });
+
+            afterEach(function() {
+                window.FormData = realFormData;
+                appendedData = {};
+            });
+
+            it('encodes the form fields and includes them in the payload', function() {
+                ajaxForm.domReady.call(formDataForm);
+                formDataForm.submit();
+
+                expect(JSON.stringify(appendedData)).to.equal(JSON.stringify({
+                    test1:'foobar',
+                    select1:'bar',
+                    select3:'fizz',
+                    ce1name:'ce1value'
+                }));
             });
         });
 
         describe('Submit data modification', function() {
-            afterEach(function() {
-
-            });
-
             it('Allows JSON encoded data to be augmented before it is submitted', function() {
-                var jsonFormAjax = jsonForm.shadowRoot.querySelector('core-ajax'),
-                    submittedListener = function(event) {
+                var submittedListener = function(event) {
                         event.detail.formData.newfield = 'newval';
                         event.detail.formData.test1 = 'changedval';
                     };
@@ -232,12 +318,17 @@
 
                 jsonForm.removeEventListener('submitting', submittedListener);
 
-                expect(jsonFormAjax.body).to.equal(JSON.stringify({test1:'changedval', ce1name:'ce1value', newfield:'newval'}));
+                expect(requests[0].requestBody).to.equal(JSON.stringify({
+                    test1:'changedval',
+                    select1:['bar'],
+                    select2:['foo', 'bar'],
+                    select3:['fizz'],
+                    ce1name:'ce1value',
+                    newfield:'newval'
+                }));
             });
 
             it('Allows JSON encoded data to be restructured before it is submitted', function() {
-                var jsonFormAjax = jsonForm.shadowRoot.querySelector('core-ajax');
-
                 ajaxForm.domReady.call(jsonForm);
 
                 jsonForm.addEventListener('submitting', function(event) {
@@ -254,7 +345,7 @@
 
                 jsonForm.submit();
 
-                expect(jsonFormAjax.body).to.equal(JSON.stringify({
+                expect(requests[0].requestBody).to.equal(JSON.stringify({
                     testfields: {
                         test1: 'foobar'
                     },
@@ -266,7 +357,6 @@
 
             it('Allows URL-encoded data to be augmented before it is submitted (GET)', function() {
                 typicalForm.setAttribute('method', 'GET');
-                var testFormAjax = typicalForm.shadowRoot.querySelector('core-ajax');
 
                 ajaxForm.domReady.call(typicalForm);
 
@@ -277,12 +367,11 @@
 
                 typicalForm.submit();
 
-                expect(testFormAjax.url).to.have.string('test1=changedval&ce1name=ce1value&newfield=newval');
+                expect(requests[0].url).to.have.string('test1=changedval&ce1name=ce1value&newfield=newval');
             });
 
             it('Allows URL-encoded data to be augmented before it is submitted (POST)', function() {
                 typicalForm.setAttribute('method', 'POST');
-                var testFormAjax = typicalForm.shadowRoot.querySelector('core-ajax');
 
                 ajaxForm.domReady.call(typicalForm);
 
@@ -293,7 +382,7 @@
 
                 typicalForm.submit();
 
-                expect(testFormAjax.body).to.equal('test1=changedval&ce1name=ce1value&newfield=newval');
+                expect(requests[0].requestBody).to.equal('test1=changedval&ce1name=ce1value&newfield=newval');
             });
         });
 
