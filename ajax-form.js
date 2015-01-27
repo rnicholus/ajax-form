@@ -125,10 +125,10 @@
         /**
          * Parse an `HTMLFormElement` into key value pairs
          * @param HTMLFormElement form
-         * @return Object key, value pairs representing the html form
+         * @return Collection of object key, value pairs representing the html form
          */
         parseForm = function(form, parseFileInputs) {
-            var formObj = {},
+            var formObj = [],
                 formElements = form.querySelectorAll('input'),
                 customElementsData = parseCustomElements(form, parseFileInputs);
 
@@ -145,13 +145,13 @@
                         val = parseElementValue(formElement);
 
                     if (key && val) {
-                        formObj[key] = val;
+                        formObj.push({key: key, value: val});
                     }
                 }
             });
 
             Object.keys(customElementsData).forEach(function(fieldName) {
-                formObj[fieldName] = customElementsData[fieldName];
+                formObj.push({key: fieldName, value: customElementsData[fieldName]});
             });
 
             return formObj;
@@ -170,8 +170,8 @@
                 ['submit', 'reset', 'button', 'image'].indexOf(elementType) !== -1) {
                 // do nothing for these button types
             }
-            else if (elementType === 'radio') {
-                elementValue = parseRadioElementValue(element);
+            else if (elementType === 'radio' || elementType === 'checkbox') {
+                elementValue = parseRadioOrCheckboxElementValue(element);
             } else {
                 elementValue = element.value;
             }
@@ -186,7 +186,7 @@
          * @param HTMLRadioElement element
          * @return mixed The element's value
          */
-        parseRadioElementValue = function(element) {
+        parseRadioOrCheckboxElementValue = function(element) {
             var value;
             if (element.checked === true) {
                 value = element.value;
@@ -251,6 +251,7 @@
         },
 
         sendJsonEncodedForm = function(ajaxForm, data) {
+
             sendRequest({
                 body: JSON.stringify(data),
                 contentType: getEnctype(ajaxForm),
@@ -324,9 +325,9 @@
         toQueryString = function(params) {
             var queryParams = [];
 
-            Object.keys(params).forEach(function(key) {
-                var val = params[key];
-                key = encodeURIComponent(key);
+            params.forEach(function(param) {
+                var val = param.value,
+                key = encodeURIComponent(param.key);
 
                 if (val && Object.prototype.toString.call(val) === '[object Array]') {
                     val.forEach(function(valInArray) {
