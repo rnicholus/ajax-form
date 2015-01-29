@@ -26,6 +26,10 @@
         <my-ce2></my-ce2>
     </form>
 
+    <form is="ajax-form" id="typicalFormWithHeaders" method="post" headers='{"X-Cust-Header": "FooBar", "X-Requested-By": "XMLHttpRequest"}' action="test">
+        <input name="test1" type="text" value="foobar"/>
+    </form>
+
     <form is="ajax-form" id="requiredFileInputForm" method="post" action="test">
         <file-input required></file-input>
     </form>
@@ -88,6 +92,7 @@
 
     <script>
         var typicalForm = document.querySelector('#typicalForm'),
+            typicalFormWithHeaders = document.querySelector('#typicalFormWithHeaders'),
             requiredFileInputForm = document.querySelector('#requiredFileInputForm'),
             jsonForm = document.querySelector('#jsonForm'),
             formDataForm = document.querySelector('#formDataForm'),
@@ -101,6 +106,7 @@
             it('Make sure Polymer and ajax-form are alive', function() {
                 expect(ajaxForm).to.exist;
                 expect(typicalForm).to.exist;
+                expect(typicalFormWithHeaders).to.exist;
                 expect(requiredFileInputForm).to.exist;
                 expect(jsonForm).to.exist;
                 expect(formDataForm).to.exist;
@@ -211,7 +217,7 @@
                 expect(fireCall.args[1][0].tagName).to.equal('FILE-INPUT');
 
                 expect(requiredFileInputForm.checkValidity()).to.equal(false);
-            })
+            });
         });
 
         describe('submit interception', function() {
@@ -256,6 +262,23 @@
 
                 expect(requests[0].requestHeaders['Content-Type']).to.have.string('application/x-www-form-urlencoded');
                 expect(requests[0].requestBody).to.equal('test1=foobar&ce1name=ce1value');
+            });
+        });
+
+        describe('custom headers', function() {
+            it('sends all custom headers with the request', function() {
+                ajaxForm.domReady.call(typicalFormWithHeaders);
+                typicalFormWithHeaders.submit();
+
+                expect(requests[0].requestBody).to.have.string('test1=foobar');
+
+                var headers = requests[0].requestHeaders;
+                expect(headers['Content-Type']).to.have.string('application/x-www-form-urlencoded');
+                delete headers['Content-Type'];
+                expect(JSON.stringify(headers)).to.equal(JSON.stringify({
+                    'X-Cust-Header': 'FooBar',
+                    'X-Requested-By': 'XMLHttpRequest'
+                }));
             });
         });
 

@@ -285,11 +285,22 @@
         },
 
         sendRequest = function(options) {
-            var xhr = new XMLHttpRequest();
+            var xhr = new XMLHttpRequest(),
+                customHeaders = options.form.headers;
 
             xhr.open(options.form.acceptableMethod, options.url || options.form.action);
 
             xhr.withCredentials = !!options.form.cookies;
+
+            if (customHeaders) {
+                if (typeof(customHeaders) === 'string') {
+                    customHeaders = JSON.parse(customHeaders);
+                }
+
+                Object.keys(customHeaders).forEach(function(headerName) {
+                    xhr.setRequestHeader(headerName, customHeaders[headerName]);
+                });
+            }
 
             options.contentType && xhr.setRequestHeader('Content-Type', options.contentType);
 
