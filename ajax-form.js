@@ -59,7 +59,7 @@
                     selectedItem = coreMenu && coreMenu.selectedItem;
 
                 if (selectedItem) {
-                    data[customElement.getAttribute('name')] = selectedItem.label || selectedItem.textContent;
+                    data.push({key: customElement.getAttribute('name'), value: selectedItem.label || selectedItem.textContent});
                     return true;
                 }
 
@@ -74,7 +74,7 @@
                 var fileInputName = element.getAttribute('name');
 
                 if (element.files.length) {
-                    data[fileInputName] = arrayOf(element.files);
+                    data.push({key: fileInputName, value: arrayOf(element.files)});
                 }
 
                 return true;
@@ -83,20 +83,19 @@
 
         maybeParseGenericCustomElement = function(customElement, data) {
             if (customElement.tagName.indexOf('-') >= 0 && customElement.value != null) {
-                data[customElement.getAttribute('name')] = customElement.value;
+                data.push({key: customElement.getAttribute('name'), value: customElement.value});
                 return true;
             }
         },
 
         parseCustomElements = function(form, parseFileInputs) {
-            var data = {};
+            var data = [];
 
             arrayOf(form.querySelectorAll('*[name]')).forEach(function(el) {
                 (parseFileInputs && maybeParseFileInput(el, data)) ||
                 maybeParseCoreDropdownMenu(el, data) ||
                 maybeParseGenericCustomElement(el, data);
             });
-
             return data;
         },
 
@@ -144,14 +143,13 @@
                     var key = formElement.name,
                         val = parseElementValue(formElement);
 
-                    if (key && val) {
+                    if (key && val)
                         formObj.push({key: key, value: val});
-                    }
                 }
             });
 
-            Object.keys(customElementsData).forEach(function(fieldName) {
-                formObj.push({key: fieldName, value: customElementsData[fieldName]});
+            customElementsData.forEach(function(customElement) {
+                formObj.push({key: customElement.key, value: customElement.value});
             });
 
             return formObj;
@@ -326,7 +324,7 @@
             var queryParams = [];
 
             params.forEach(function(param) {
-                var val = param.value,
+                var val = param.value;
                 key = encodeURIComponent(param.key);
 
                 if (val && Object.prototype.toString.call(val) === '[object Array]') {
