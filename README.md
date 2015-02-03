@@ -3,7 +3,7 @@ ajax-form
 
 HTML forms on performance-enhancing drugs
 
-[![Build Status](https://travis-ci.org/garstasio/ajax-form.svg?branch=master)](https://travis-ci.org/garstasio/ajax-form)
+[![Build Status](https://travis-ci.org/rnicholus/ajax-form.svg?branch=master)](https://travis-ci.org/rnicholus/ajax-form)
 
 ## Installation
 
@@ -13,7 +13,7 @@ HTML forms on performance-enhancing drugs
 
 `bower update`
 
-See the [component page](http://garstasio.github.io/ajax-form/components/ajax-form/) for complete documentation and demos.
+See the [component page](http://ajax-form.raynicholus.com) for complete documentation and demos.
 
 
 ## Integration
@@ -43,7 +43,7 @@ need to include a little code to account for this.  Here are the steps to follow
 3. Ensure the validity of the input always matches the validity of your field.  You can
 do this via the `setCustomValidity` method present on an `HTMLInputElement`.
 
-See the [`setValidationTarget` method in the `<file-input>` custom element source code](https://github.com/garstasio/file-input/blob/1.1.4/file-input.js#L104)
+See the [`setValidationTarget` method in the `<file-input>` custom element source code](https://github.com/rnicholus/file-input/blob/1.1.4/file-input.js#L104)
 for an example.
 
 

@@ -2,7 +2,7 @@
   "author": {
     "name": "Ray Nicholus"
   },
-  "bugs": "https://github.com/garstasio/ajax-form/issues",
+  "bugs": "https://github.com/rnicholus/ajax-form/issues",
   "description": "HTML forms on performance-enhancing drugs",
   "devDependencies": {
     "bower": "1.3.x",
@@ -15,7 +15,7 @@
   "name": "ajax-form",
   "repository": {
     "type": "git",
-    "url": "https://github.com/garstasio/ajax-form.git"
+    "url": "https://github.com/rnicholus/ajax-form.git"
   },
-  "version": "1.5.1"
+  "version": "1.5.2"
 }

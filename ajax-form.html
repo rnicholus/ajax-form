@@ -9,7 +9,7 @@ Also allows the `<file-input>` custom element (and any other custom element form
 that have a `name` attribute and a `value`) to be submitted along with other traditional
 form elements.
 
-Check out the GitHub repository at https://github.com/garstasio/ajax-form.
+Check out the GitHub repository at https://github.com/rnicholus/ajax-form.
 
 ### What's wrong with a traditional `<form>`?
 
@@ -33,7 +33,7 @@ Check out the GitHub repository at https://github.com/garstasio/ajax-form.
 1. Callbacks when form validation fails, just before the form is submitted, and after the server has responded.
 2. The ability to send custom headers to the server with the submit request.
 3. Prevention of a page reload/redirect on submit.
-4. The ability to include the [`<file-input>` custom element](https://github.com/garstasio/file-input) as a `<form>` field.
+4. The ability to include the [`<file-input>` custom element](https://github.com/rnicholus/file-input) as a `<form>` field.
 
 ### Submitting
 Submit your form just as you would any other form.  For example:
@@ -42,12 +42,12 @@ Submit your form just as you would any other form.  For example:
 3. By calling `submit()` on the `<form>` element.
 
 If you are, for example, using a [`<paper-button>`](https://www.polymer-project.org/docs/elements/paper-elements.html#paper-button),
-you'll need to [attach a click handler to the button](https://github.com/garstasio/ajax-form/issues/27#issuecomment-64512558)
+you'll need to [attach a click handler to the button](https://github.com/rnicholus/ajax-form/issues/27#issuecomment-64512558)
 and submit the form when this handler is invoked.
 
 ### Integration with `<file-input>` custom element
 Want a better `<input type="file">` element that can be easily styled, has built-in,
-customizable validation, and provides an improved API?  Check out the [`<file-input>` custom element](https://github.com/garstasio/file-input).
+customizable validation, and provides an improved API?  Check out the [`<file-input>` custom element](https://github.com/rnicholus/file-input).
 `ajax-form` allows `<file-input>` custom element to be submitted along with other standard
 form fields.  Just include your `<file-input>` element as a child of your `<form is="ajax-form">`.
 That's it!
