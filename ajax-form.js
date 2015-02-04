@@ -59,7 +59,7 @@
                     selectedItem = coreMenu && coreMenu.selectedItem;
 
                 if (selectedItem) {
-                    data[customElement.getAttribute('name')] = selectedItem.label || selectedItem.textContent;
+                    data.push({key: customElement.getAttribute('name'), value: selectedItem.label || selectedItem.textContent});
                     return true;
                 }
 
@@ -74,7 +74,7 @@
                 var fileInputName = element.getAttribute('name');
 
                 if (element.files.length) {
-                    data[fileInputName] = arrayOf(element.files);
+                    data.push({key: fileInputName, value: arrayOf(element.files)});
                 }
 
                 return true;
@@ -83,20 +83,19 @@
 
         maybeParseGenericCustomElement = function(customElement, data) {
             if (customElement.tagName.indexOf('-') >= 0 && customElement.value != null) {
-                data[customElement.getAttribute('name')] = customElement.value;
+                data.push({key: customElement.getAttribute('name'), value: customElement.value});
                 return true;
             }
         },
 
         parseCustomElements = function(form, parseFileInputs) {
-            var data = {};
+            var data = [];
 
             arrayOf(form.querySelectorAll('*[name]')).forEach(function(el) {
                 (parseFileInputs && maybeParseFileInput(el, data)) ||
                 maybeParseCoreDropdownMenu(el, data) ||
                 maybeParseGenericCustomElement(el, data);
             });
-
             return data;
         },
 
@@ -125,10 +124,10 @@
         /**
          * Parse an `HTMLFormElement` into key value pairs
          * @param HTMLFormElement form
-         * @return Object key, value pairs representing the html form
+         * @return Collection of object key, value pairs representing the html form
          */
         parseForm = function(form, parseFileInputs) {
-            var formObj = {},
+            var formObj = [],
                 formElements = form.querySelectorAll('input'),
                 customElementsData = parseCustomElements(form, parseFileInputs);
 
@@ -144,14 +143,13 @@
                     var key = formElement.name,
                         val = parseElementValue(formElement);
 
-                    if (key && val) {
-                        formObj[key] = val;
-                    }
+                    if (key && val)
+                        formObj.push({key: key, value: val});
                 }
             });
 
-            Object.keys(customElementsData).forEach(function(fieldName) {
-                formObj[fieldName] = customElementsData[fieldName];
+            customElementsData.forEach(function(customElement) {
+                formObj.push({key: customElement.key, value: customElement.value});
             });
 
             return formObj;
@@ -170,8 +168,8 @@
                 ['submit', 'reset', 'button', 'image'].indexOf(elementType) !== -1) {
                 // do nothing for these button types
             }
-            else if (elementType === 'radio') {
-                elementValue = parseRadioElementValue(element);
+            else if (elementType === 'radio' || elementType === 'checkbox') {
+                elementValue = parseRadioOrCheckboxElementValue(element);
             } else {
                 elementValue = element.value;
             }
@@ -186,7 +184,7 @@
          * @param HTMLRadioElement element
          * @return mixed The element's value
          */
-        parseRadioElementValue = function(element) {
+        parseRadioOrCheckboxElementValue = function(element) {
             var value;
             if (element.checked === true) {
                 value = element.value;
@@ -251,6 +249,7 @@
         },
 
         sendJsonEncodedForm = function(ajaxForm, data) {
+
             sendRequest({
                 body: JSON.stringify(data),
                 contentType: getEnctype(ajaxForm),
@@ -335,9 +334,9 @@
         toQueryString = function(params) {
             var queryParams = [];
 
-            Object.keys(params).forEach(function(key) {
-                var val = params[key];
-                key = encodeURIComponent(key);
+            params.forEach(function(param) {
+                var val = param.value;
+                key = encodeURIComponent(param.key);
 
                 if (val && Object.prototype.toString.call(val) === '[object Array]') {
                     val.forEach(function(valInArray) {
