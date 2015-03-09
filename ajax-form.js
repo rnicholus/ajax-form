@@ -81,10 +81,16 @@
             }
         },
 
-        maybeParseGenericCustomElement = function(customElement, data) {
-            if (customElement.tagName.indexOf('-') >= 0 && customElement.value != null) {
+        maybeParseGenericCustomElement = function(customElement, data, parseFileInputs) {
+            if (customElement.tagName.indexOf('-') >= 0 ) {
+              if (customElement.value != null) {
                 data[customElement.getAttribute('name')] = customElement.value;
                 return true;
+              }
+              else if (parseFileInputs && customElement.files && customElement.files.length) {
+                 data[customElement.getAttribute('name')] = arrayOf(customElement.files);
+                 return true;
+              }
             }
         },
 
@@ -92,9 +98,8 @@
             var data = {};
 
             arrayOf(form.querySelectorAll('*[name]')).forEach(function(el) {
-                (parseFileInputs && maybeParseFileInput(el, data)) ||
                 maybeParseCoreDropdownMenu(el, data) ||
-                maybeParseGenericCustomElement(el, data);
+                maybeParseGenericCustomElement(el, data, parseFileInputs);
             });
 
             return data;
