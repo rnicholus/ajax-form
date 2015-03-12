@@ -67,21 +67,7 @@
             }
         },
 
-        maybeParseFileInput = function(element, data) {
-            if (element.tagName.toLowerCase() === 'file-input' ||
-                (element.tagName.toLowerCase() === 'input' && element.getAttribute('type') === 'file')) {
-
-                var fileInputName = element.getAttribute('name');
-
-                if (element.files.length) {
-                    data[fileInputName] = arrayOf(element.files);
-                }
-
-                return true;
-            }
-        },
-
-        maybeParseGenericCustomElement = function(customElement, data, parseFileInputs) {
+        maybeParseCustomElementOrFileInput = function(customElement, data, parseFileInputs) {
             if (customElement.tagName.indexOf('-') >= 0 ) {
               if (customElement.value != null) {
                 data[customElement.getAttribute('name')] = customElement.value;
@@ -99,7 +85,7 @@
 
             arrayOf(form.querySelectorAll('*[name]')).forEach(function(el) {
                 maybeParseCoreDropdownMenu(el, data) ||
-                maybeParseGenericCustomElement(el, data, parseFileInputs);
+                maybeParseCustomElementOrFileInput(el, data, parseFileInputs);
             });
 
             return data;
@@ -142,16 +128,11 @@
             formElements = formElements.concat(arrayOf(form.querySelectorAll('textarea')));
 
             formElements.forEach(function(formElement) {
-                if (formElement.getAttribute('type') === 'file') {
-                    parseFileInputs && maybeParseFileInput(formElement, formObj);
-                }
-                else {
-                    var key = formElement.name,
-                        val = parseElementValue(formElement);
+                var key = formElement.name,
+                    val = parseElementValue(formElement);
 
-                    if (key && val) {
-                        formObj[key] = val;
-                    }
+                if (key && val) {
+                    formObj[key] = val;
                 }
             });
 
