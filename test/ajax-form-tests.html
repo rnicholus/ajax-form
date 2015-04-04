@@ -141,7 +141,7 @@
                 expect(ajaxForm.domReady.bind(typicalForm)).to.throw('Invalid method!');
             });
 
-            it('throws an error if the method is not "get", "post" or "put"', function() {
+            it('throws an error if the method is not "get", "post", "put", or "patch', function() {
                 typicalForm.setAttribute('method', 'head');
                 expect(ajaxForm.domReady.bind(typicalForm)).to.throw('Invalid method!');
             });
@@ -163,6 +163,13 @@
 
             it('adds a listener to squelch submit events if the method is "get"', function() {
                 typicalForm.setAttribute('method', 'get');
+                ajaxForm.domReady.call(typicalForm);
+
+                expect(typicalForm.addEventListener).to.have.been.calledWith('submit');
+            });
+
+            it('adds a listener to squelch submit events if the method is "patch"', function() {
+                typicalForm.setAttribute('method', 'patch');
                 ajaxForm.domReady.call(typicalForm);
 
                 expect(typicalForm.addEventListener).to.have.been.calledWith('submit');
