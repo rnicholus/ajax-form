@@ -7,17 +7,6 @@ module.exports = function(grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         jshint: config('jshint'),
-        'wct-test': {
-            desktop: {
-                options: {
-                    browsers: ['chrome', 'safari'],
-                    remote: false
-                }
-            },
-            remote: {
-                options: {remote: true}
-            }
-        },
         watch: {
             files: ['ajax-form.js', 'grunt_tasks/*.js', 'test/unit/*'],
             tasks: ['jshint', 'karma:dev']
@@ -39,18 +28,26 @@ module.exports = function(grunt) {
                     'cd dist',
                     'npm publish'
                 ].join('&&')
+            },
+            wctLocal: {
+                command: [
+                    'wct --local all'
+                ].join('&&')
+            },
+            wctSauce: {
+                command: [
+                    'wct --sauce all'
+                ].join('&&')
             }
         }
     });
-
-    grunt.loadNpmTasks('web-component-tester');
 
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-shell');
 
-    grunt.registerTask('default', ['jshint', 'wct-test:desktop']);
-    grunt.registerTask('travis', ['jshint', 'wct-test:remote']);
+    grunt.registerTask('default', ['jshint', 'shell:wctLocal']);
+    grunt.registerTask('travis', ['jshint', 'shell:wctSauce']);
     grunt.registerTask('publishToNpm', ['jshint', 'wct-test:desktop', 'copy:npmPreRelease', 'shell:npmRelease']);
 };
