@@ -10,7 +10,7 @@ module.exports = function(grunt) {
         'wct-test': {
             desktop: {
                 options: {
-                    browsers: ['chrome', 'firefox', 'safari'],
+                    browsers: ['chrome', 'safari'],
                     remote: false
                 }
             },
