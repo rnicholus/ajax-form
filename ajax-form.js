@@ -401,7 +401,8 @@
         prototype: Object.create(HTMLFormElement.prototype, {
             createdCallback: {
                 value: function () {
-                    var template = importDoc.querySelector('#ajax-form-template'),
+                    var templates = importDoc.querySelectorAll('.ajax-form-template'),
+                        template = templates[templates.length - 1],
                         clone = document.importNode(template.content, true),
                         root = this.createShadowRoot();
 
