@@ -3,6 +3,18 @@
             return Array.prototype.slice.call(pseudoArray);
         },
 
+    // TODO fix for IE (see https://gist.github.com/james2doyle/7945320)
+        fire = function (node, type, _detail_) {
+            var detail = _detail_ === null || _detail_ === undefined ? {} : _detail_,
+                event = new CustomEvent(type, {
+                    bubbles: true,
+                    cancelable: true,
+                    detail: detail
+                });
+            node.dispatchEvent(event);
+            return event;
+        },
+
         getEnctype = function(ajaxForm) {
             var enctype = ajaxForm.getAttribute('enctype');
 
@@ -18,6 +30,9 @@
                 }
             }
         },
+
+    // Note that _currentScript is a polyfill-specific convention
+        importDoc = document._currentScript.ownerDocument,
 
         // NOTE: Safari doesn't have any visual indications when submit is blocked
         interceptSubmit = function(ajaxForm) {
@@ -44,7 +59,7 @@
             ajaxForm.appendChild(fakeSubmitEl);
             ajaxForm.submit = function() {
                 if (ajaxForm.checkValidity()) {
-                    ajaxForm.fire('submit');
+                    fire(ajaxForm, 'submit');
                 }
                 else {
                     fakeSubmitEl.click();
@@ -214,7 +229,7 @@
         sendFormData = function(ajaxForm) {
             var enctype = getEnctype(ajaxForm),
                 formData = parseForm(ajaxForm, enctype === 'multipart/form-data'),
-                submittingEvent = ajaxForm.fire('submitting', {formData: formData});
+                submittingEvent = fire(ajaxForm, 'submitting', {formData: formData});
 
             formData = submittingEvent.detail.formData;
 
@@ -266,13 +281,14 @@
 
             sendRequest({
                 body: formData,
+                contentType: getEnctype(ajaxForm),
                 form: ajaxForm
             });
         },
 
         sendRequest = function(options) {
             var xhr = new XMLHttpRequest(),
-                customHeaders = options.form.headers;
+                customHeaders = options.form.getAttribute('headers');
 
             xhr.open(options.form.acceptableMethod, options.url || options.form.action);
 
@@ -292,7 +308,7 @@
 
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4) {
-                    options.form.fire('submitted', xhr);
+                    fire(options.form, 'submitted', xhr);
                 }
             };
 
@@ -339,72 +355,77 @@
           },
 
         watchForInvalidFields = function(ajaxForm, existingEventListeners) {
-            var initialFields = arrayOf(ajaxForm.querySelectorAll(':invalid, :valid')),
-                invalidFields = [],
-
-                listenForInvalidEvent = function(field) {
-                    field.willValidate && field.addEventListener('invalid', function() {
-                        invalidFields.push(field.customElementRef || field);
-
-                        // In case another element is invalid and the event
-                        // hasn't been triggered yet, hold off on firing the
-                        // invalid event on the custom el.
-                        clearTimeout(timer);
-                        timer = setTimeout(function() {
-                            ajaxForm.fire('invalid', invalidFields);
-                            invalidFields = [];
-                            console.error('Form submission blocked - constraints violation.');
-                        }, 10);
-                    });
-                },
-
-                // Be sure to observe any validatable form fields added in the future
-                mutationHandler = function(observer, records) {
-                    records.forEach(function(record) {
-                        if (record.addedNodes.length) {
-                            arrayOf(record.addedNodes).forEach(function(addedNode) {
-                                addedNode.willValidate && listenForInvalidEvent(addedNode);
-                            });
-                        }
-                    });
-
-                    ajaxForm.onMutation(ajaxForm, mutationHandler);
-                },
-
-                timer = null;
-
-            initialFields.forEach(function(field) {
-                listenForInvalidEvent(field);
-            });
-
-            ajaxForm.onMutation(ajaxForm, mutationHandler);
+            //var initialFields = arrayOf(ajaxForm.querySelectorAll(':invalid, :valid')),
+            //    invalidFields = [],
+            //
+            //    listenForInvalidEvent = function(field) {
+            //        field.willValidate && field.addEventListener('invalid', function() {
+            //            invalidFields.push(field.customElementRef || field);
+            //
+            //            // In case another element is invalid and the event
+            //            // hasn't been triggered yet, hold off on firing the
+            //            // invalid event on the custom el.
+            //            clearTimeout(timer);
+            //            timer = setTimeout(function() {
+            //                ajaxForm.fire('invalid', invalidFields);
+            //                invalidFields = [];
+            //                console.error('Form submission blocked - constraints violation.');
+            //            }, 10);
+            //        });
+            //    },
+            //
+            //    // Be sure to observe any validatable form fields added in the future
+            //    mutationHandler = function(observer, records) {
+            //        records.forEach(function(record) {
+            //            if (record.addedNodes.length) {
+            //                arrayOf(record.addedNodes).forEach(function(addedNode) {
+            //                    addedNode.willValidate && listenForInvalidEvent(addedNode);
+            //                });
+            //            }
+            //        });
+            //
+            //        ajaxForm.onMutation(ajaxForm, mutationHandler);
+            //    },
+            //
+            //    timer = null;
+            //
+            //initialFields.forEach(function(field) {
+            //    listenForInvalidEvent(field);
+            //});
+            //
+            //ajaxForm.onMutation(ajaxForm, mutationHandler);
         };
 
-    this.ajaxForm = {
-       /**
-        * Fired when a response is received.
-        *
-        * @event core-response
-        */
-        cookies: false,
+    document.registerElement('ajax-form', {
+        extends: 'form',
+        prototype: Object.create(HTMLFormElement.prototype, {
+            createdCallback: {
+                value: function () {
+                    var template = importDoc.querySelector('#ajax-form-template'),
+                        clone = document.importNode(template.content, true),
+                        root = this.createShadowRoot();
 
-        domReady: function() {
-            var ajaxForm = this;
+                    root.appendChild(clone);
 
-            // The method attribute set on the light-DOM `<form>`
-            // can't seem to be accessed as a property of this element,
-            // unlike other attributes.  Perhaps due to the fact that
-            // we are extending a form and a "natural" form also has a
-            // method attr?  Perhaps something special about this attr?
-            // Need to look into this further.
-            ajaxForm.acceptableMethod = getValidMethod(ajaxForm.getAttribute('method'));
+                    var ajaxForm = this;
 
-            if (!ajaxForm.acceptableMethod) {
-                throw new Error('Invalid method!');
+                    // The method attribute set on the light-DOM `<form>`
+                    // can't seem to be accessed as a property of this element,
+                    // unlike other attributes.  Perhaps due to the fact that
+                    // we are extending a form and a "natural" form also has a
+                    // method attr?  Perhaps something special about this attr?
+                    // Need to look into this further.
+                    ajaxForm.acceptableMethod = getValidMethod(ajaxForm.getAttribute('method'));
+
+                    if (!ajaxForm.acceptableMethod) {
+                        throw new Error('Invalid method!');
+                    }
+
+                    watchForInvalidFields(ajaxForm);
+                    interceptSubmit(ajaxForm);
+                    fire(ajaxForm, 'ready');
+                }
             }
-
-            watchForInvalidFields(ajaxForm);
-            interceptSubmit(ajaxForm);
-        }
-    };
+        })
+    });
 }());

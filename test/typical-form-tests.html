@@ -1,0 +1,346 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Import dependencies -->
+    <script src="../../webcomponentsjs/webcomponents.min.js"></script>
+    <script src="../node_modules/web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../../file-input/file-input.html">
+    <link rel="import" href="../ajax-form.html">
+</head>
+
+<body>
+
+<script>
+    var ajaxForm, xhr, requests,
+
+            createForm = function (spec, done) {
+                var formStr =
+                        '<form is="ajax-form" method="' + spec.method + '" action="test">' +
+                        '<input name="test1" type="text" value="foobar"/>' +
+                        '<input name="test2" type="text"/>' +
+                        '<input name="test3" type="text"/>' +
+
+                        '<my-ce1 id="jsonce" name="ce1name"></my-ce1>' +
+                        '<my-ce2></my-ce2>' +
+
+                        '<select name="select1">' +
+                        '<option value="foo">foo</option>' +
+                        '<option value="bar" selected>bar</option>' +
+                        '</select>' +
+
+                        '<select name="select2" multiple>' +
+                        '<option value="foo" selected>foo</option>' +
+                        '<option value="bar" selected>bar</option>' +
+                        '<option value="fizz">fizz</option>' +
+                        '</select>' +
+
+                        '<select name="select3">' +
+                        '<optgroup label="one">' +
+                        '<option value="foo">foo</option>' +
+                        '<option value="bar">bar</option>' +
+                        '</optgroup>' +
+                        '<optgroup label="two">' +
+                        '<option value="fizz" selected>fizz</option>' +
+                        '<option value="buzz">buzz</option>' +
+                        '</optgroup>' +
+                        '</select>' +
+                        '</form>';
+
+                container = document.createElement('span');
+                container.innerHTML = formStr;
+                ajaxForm = container.querySelector('form');
+
+                if (spec.headers) {
+                    ajaxForm.setAttribute('headers', JSON.stringify(spec.headers));
+                }
+
+                if (spec.enctype) {
+                    ajaxForm.setAttribute('enctype', spec.enctype);
+                }
+
+                ajaxForm.querySelector('[name="ce1name"]').value = 'ce1value';
+
+                document.body.appendChild(container);
+
+                // pause to allow component-related tasks in UI thread to be processed
+                setTimeout(function () {
+                    done();
+                }, 1);
+            };
+
+    beforeEach(function () {
+        requests = [];
+        xhr = sinon.useFakeXMLHttpRequest();
+
+        xhr.onCreate = function (xhr) {
+            requests.push(xhr);
+        };
+    });
+
+    afterEach(function () {
+        xhr.restore();
+        ajaxForm.parentNode.removeChild(ajaxForm);
+    });
+
+    describe('ajax-form method normalization', function () {
+        beforeEach(function () {
+            sinon.spy(EventTarget.prototype, 'addEventListener');
+        });
+
+        afterEach(function () {
+            EventTarget.prototype.addEventListener.restore();
+        });
+
+        // Ensure 'submit' event is added via addEventListener for post, put, and get methods
+        it('adds a listener to squelch submit events', function (done) {
+            createForm({method: 'GET'}, function () {
+                expect(ajaxForm.addEventListener).to.have.been.calledWith('submit');
+                done();
+            });
+        });
+    });
+
+    describe('submit interception', function () {
+        it('submit method is overridden', function (done) {
+            createForm({method: 'GET'}, function () {
+                ajaxForm.addEventListener('submit', function () {
+                    done();
+                });
+                ajaxForm.submit();
+            })
+        });
+    });
+
+    describe('url encoding', function () {
+        it('url encodes the form fields and includes them in query string for GET requests', function (done) {
+            createForm({method: 'GET'}, function () {
+                ajaxForm.submit();
+
+                expect(requests[0].url).to.have.string('test1=foobar&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value');
+                done();
+            });
+        });
+
+        it('url encodes the form fields and includes them in the payload for POST requests', function (done) {
+            createForm({method: 'POST'}, function () {
+                ajaxForm.submit();
+
+                expect(requests[0].requestHeaders['Content-Type']).to.have.string('application/x-www-form-urlencoded');
+                expect(requests[0].requestBody).to.equal('test1=foobar&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value');
+                done();
+            });
+        });
+    });
+
+    describe('custom headers', function () {
+        it('sends all custom headers with the request', function (done) {
+            createForm({method: 'GET', headers: {'X-Cust-Header': 'FooBar'}}, function () {
+                ajaxForm.submit();
+
+                var headers = requests[0].requestHeaders;
+
+                expect(headers['Content-Type']).to.have.string('application/x-www-form-urlencoded');
+                delete headers['Content-Type'];
+                expect(JSON.stringify(headers)).to.equal(JSON.stringify({
+                    'X-Cust-Header': 'FooBar'
+                }));
+                done();
+            });
+        });
+    });
+
+    describe('JSON encoding', function () {
+        it('JSON encodes the form fields and includes them in the payload', function (done) {
+            createForm({method: 'POST', enctype: 'application/json'}, function () {
+                ajaxForm.submit();
+
+                expect(requests[0].requestHeaders['Content-Type']).to.have.string('application/json');
+                expect(requests[0].requestBody).to.equal(JSON.stringify({
+                    test1: 'foobar',
+                    select1: ['bar'],
+                    select2: ['foo', 'bar'],
+                    select3: ['fizz'],
+                    ce1name: 'ce1value'
+                }));
+                done();
+            });
+        });
+    });
+
+    describe('multipart/form-data encoding', function () {
+        var realFormData = window.FormData,
+                appendedData = {};
+
+        beforeEach(function () {
+            window.FormData.prototype.append = function (key, val) {
+                if (appendedData[key] != null) {
+                    key = key + '_series';
+                }
+                appendedData[key] = val;
+            }
+        });
+
+        afterEach(function () {
+            window.FormData = realFormData;
+            appendedData = {};
+        });
+
+        it('encodes the form fields and includes them in the payload', function (done) {
+            createForm({method: 'POST', enctype: 'multipart/form-data'}, function () {
+                ajaxForm.submit();
+
+                expect(requests[0].requestHeaders['Content-Type']).to.have.string('multipart/form-data');
+                expect(JSON.stringify(appendedData)).to.equal(JSON.stringify({
+                    test1: 'foobar',
+                    select1: 'bar',
+                    'select2[]': 'foo',
+                    'select2[]_series': 'bar',
+                    select3: 'fizz',
+                    ce1name: 'ce1value'
+                }));
+                done();
+            });
+        });
+    });
+
+    //    describe('form validation', function() {
+    //        beforeEach(function() {
+    //            clock = sinon.useFakeTimers();
+    //
+    //            typicalForm.setAttribute('method', 'post');
+    //            requiredFileInputForm.setAttribute('method', 'post');
+    //            sinon.spy(typicalForm, 'fire');
+    //            sinon.spy(requiredFileInputForm, 'fire');
+    //        });
+    //
+    //        afterEach(function() {
+    //            typicalForm.fire.restore();
+    //            requiredFileInputForm.fire.restore();
+    //            clock.restore();
+    //        });
+    //
+    //        it('ensures invalid fields are identified and presented via a single event', function() {
+    //            var textInput1 = typicalForm.querySelector('input[name=test1]'),
+    //                    textInput3 = typicalForm.querySelector('input[name=test3]');
+    //
+    //            ajaxForm.domReady.call(typicalForm);
+    //
+    //            var inputInvalidEvent = document.createEvent('Event');
+    //            inputInvalidEvent.initEvent('invalid', true, true);
+    //
+    //            textInput1.dispatchEvent(inputInvalidEvent);
+    //            clock.tick(5); // give it some time to process
+    //
+    //            textInput3.dispatchEvent(inputInvalidEvent);
+    //            clock.tick(10); // give it some time to process
+    //
+    //            expect(typicalForm.fire).to.have.been.calledWith('invalid', [textInput1, textInput3]);
+    //        });
+    //
+    //        it('identifies invalid custom element fields with shadowed native form fields too', function() {
+    //            var fileInput = requiredFileInputForm.querySelector('file-input');
+    //
+    //            ajaxForm.domReady.call(requiredFileInputForm);
+    //
+    //            requiredFileInputForm.submit();
+    //
+    //            clock.tick(10); // give it some time to process
+    //
+    //            expect(requiredFileInputForm.fire).to.have.been.calledWith('invalid');
+    //            var fireCall = requiredFileInputForm.fire.getCall(0);
+    //            expect(fireCall.args[1][0].tagName).to.equal('FILE-INPUT');
+    //
+    //            expect(requiredFileInputForm.checkValidity()).to.equal(false);
+    //        });
+    //    });
+    //
+    //    describe('Submit data modification', function() {
+    //        it('Allows JSON encoded data to be augmented before it is submitted', function() {
+    //            var submittedListener = function(event) {
+    //                event.detail.formData.newfield = 'newval';
+    //                event.detail.formData.test1 = 'changedval';
+    //            };
+    //
+    //            ajaxForm.domReady.call(jsonForm);
+    //
+    //            jsonForm.addEventListener('submitting', submittedListener);
+    //
+    //            jsonForm.submit();
+    //
+    //            jsonForm.removeEventListener('submitting', submittedListener);
+    //
+    //            expect(requests[0].requestBody).to.equal(JSON.stringify({
+    //                test1:'changedval',
+    //                select1:['bar'],
+    //                select2:['foo', 'bar'],
+    //                select3:['fizz'],
+    //                ce1name:'ce1value',
+    //                newfield:'newval'
+    //            }));
+    //        });
+    //
+    //        it('Allows JSON encoded data to be restructured before it is submitted', function() {
+    //            ajaxForm.domReady.call(jsonForm);
+    //
+    //            jsonForm.addEventListener('submitting', function(event) {
+    //                var oldData = event.detail.formData;
+    //                event.detail.formData = {
+    //                    testfields: {
+    //                        test1: oldData.test1
+    //                    },
+    //                    cefields: {
+    //                        ce1name: oldData.ce1name
+    //                    }
+    //                };
+    //            });
+    //
+    //            jsonForm.submit();
+    //
+    //            expect(requests[0].requestBody).to.equal(JSON.stringify({
+    //                testfields: {
+    //                    test1: 'foobar'
+    //                },
+    //                cefields: {
+    //                    ce1name: 'ce1value'
+    //                }
+    //            }));
+    //        });
+    //
+    //        it('Allows URL-encoded data to be augmented before it is submitted (GET)', function() {
+    //            typicalForm.setAttribute('method', 'GET');
+    //
+    //            ajaxForm.domReady.call(typicalForm);
+    //
+    //            typicalForm.addEventListener('submitting', function(event) {
+    //                event.detail.formData.newfield = 'newval';
+    //                event.detail.formData.test1 = 'changedval';
+    //            });
+    //
+    //            typicalForm.submit();
+    //
+    //            expect(requests[0].url).to.have.string('test1=changedval&ce1name=ce1value&newfield=newval');
+    //        });
+    //
+    //        it('Allows URL-encoded data to be augmented before it is submitted (POST)', function() {
+    //            typicalForm.setAttribute('method', 'POST');
+    //
+    //            ajaxForm.domReady.call(typicalForm);
+    //
+    //            typicalForm.addEventListener('submitting', function(event) {
+    //                event.detail.formData.newfield = 'newval';
+    //                event.detail.formData.test1 = 'changedval';
+    //            });
+    //
+    //            typicalForm.submit();
+    //
+    //            expect(requests[0].requestBody).to.equal('test1=changedval&ce1name=ce1value&newfield=newval');
+    //        });
+    //    });
+
+</script>
+
+</body>
+</html>

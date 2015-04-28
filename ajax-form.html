@@ -1,4 +1,3 @@
-<link rel="import" href="../polymer/polymer.html">
 <script src="ajax-form.js"></script>
 
 <!--
@@ -86,19 +85,11 @@ response data **if the request is a cross-origin request**.  Also, requests with
 will be preflighted as well, so your server must handle these correctly.  [Read more about
 CORS on Mozilla Developer Network](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS).
 
-__Don't forget to [vulcanize](http://www.polymer-project.org/articles/concatenating-web-components.html)
-your main/parent HTML file before deploying into production.  This will ensure
-that all of your HTML imports are concatenated into one file.__
-
 @element ajax-form
-@status beta
 @homepage index.html
 -->
-<polymer-element name="ajax-form" extends="form" attributes="cookies headers">
-
-    <template>
-        <content></content>
-    </template>
+<template id="ajax-form-template">
+    <content></content>
 
     <script>
         /**
@@ -262,8 +253,5 @@ that all of your HTML imports are concatenated into one file.__
          * @type string
          * @default 'GET'
          */
-
-        Polymer('ajax-form', ajaxForm);
     </script>
-
-</polymer-element>
+</template>
