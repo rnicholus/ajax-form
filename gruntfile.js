@@ -31,12 +31,12 @@ module.exports = function(grunt) {
             },
             wctLocal: {
                 command: [
-                    'wct --local chrome,firefox'
+                    'node_modules/.bin/wct --local chrome,firefox'
                 ].join('&&')
             },
             wctSauce: {
                 command: [
-                    'wct --sauce all'
+                    'node_modules/.bin/wct --sauce all'
                 ].join('&&')
             }
         }

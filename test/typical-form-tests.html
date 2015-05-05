@@ -49,7 +49,7 @@
                         '</select>' +
                         '</form>';
 
-                container = document.createElement('span');
+                var container = document.createElement('span');
                 container.innerHTML = formStr;
                 ajaxForm = container.querySelector('form');
 
@@ -206,6 +206,89 @@
         });
     });
 
+    describe('Submit data modification', function () {
+        it('Allows JSON encoded data to be augmented before it is submitted', function (done) {
+            createForm({method: 'POST', enctype: 'application/json'}, function () {
+                var submittedListener = function (event) {
+                    event.detail.formData.newfield = 'newval';
+                    event.detail.formData.test1 = 'changedval';
+                };
+
+                ajaxForm.addEventListener('submitting', submittedListener);
+
+                ajaxForm.submit();
+
+                ajaxForm.removeEventListener('submitting', submittedListener);
+
+                expect(requests[0].requestBody).to.equal(JSON.stringify({
+                    test1: 'changedval',
+                    select1: ['bar'],
+                    select2: ['foo', 'bar'],
+                    select3: ['fizz'],
+                    ce1name: 'ce1value',
+                    newfield: 'newval'
+                }));
+                done();
+            });
+        });
+
+        it('Allows JSON encoded data to be restructured before it is submitted', function (done) {
+            createForm({method: 'POST', enctype: 'application/json'}, function () {
+                ajaxForm.addEventListener('submitting', function (event) {
+                    var oldData = event.detail.formData;
+                    event.detail.formData = {
+                        testfields: {
+                            test1: oldData.test1
+                        },
+                        cefields: {
+                            ce1name: oldData.ce1name
+                        }
+                    };
+                });
+
+                ajaxForm.submit();
+
+                expect(requests[0].requestBody).to.equal(JSON.stringify({
+                    testfields: {
+                        test1: 'foobar'
+                    },
+                    cefields: {
+                        ce1name: 'ce1value'
+                    }
+                }));
+                done();
+            });
+        });
+
+        it('Allows URL-encoded data to be augmented before it is submitted (GET)', function (done) {
+            createForm({method: 'GET'}, function () {
+                ajaxForm.addEventListener('submitting', function (event) {
+                    event.detail.formData.newfield = 'newval';
+                    event.detail.formData.test1 = 'changedval';
+                });
+
+                ajaxForm.submit();
+
+                expect(requests[0].url).to.have.string('test1=changedval&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value&newfield=newval');
+                done();
+            });
+        });
+
+        it('Allows URL-encoded data to be augmented before it is submitted (POST)', function (done) {
+            createForm({method: 'POST', enctype: 'application/x-www-form-urlencoded'}, function () {
+                ajaxForm.addEventListener('submitting', function (event) {
+                    event.detail.formData.newfield = 'newval';
+                    event.detail.formData.test1 = 'changedval';
+                });
+
+                ajaxForm.submit();
+
+                expect(requests[0].requestBody).to.equal('test1=changedval&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value&newfield=newval');
+                done();
+            });
+        });
+    });
+
     //    describe('form validation', function() {
     //        beforeEach(function() {
     //            clock = sinon.useFakeTimers();
@@ -256,90 +339,6 @@
     //            expect(requiredFileInputForm.checkValidity()).to.equal(false);
     //        });
     //    });
-    //
-    //    describe('Submit data modification', function() {
-    //        it('Allows JSON encoded data to be augmented before it is submitted', function() {
-    //            var submittedListener = function(event) {
-    //                event.detail.formData.newfield = 'newval';
-    //                event.detail.formData.test1 = 'changedval';
-    //            };
-    //
-    //            ajaxForm.domReady.call(jsonForm);
-    //
-    //            jsonForm.addEventListener('submitting', submittedListener);
-    //
-    //            jsonForm.submit();
-    //
-    //            jsonForm.removeEventListener('submitting', submittedListener);
-    //
-    //            expect(requests[0].requestBody).to.equal(JSON.stringify({
-    //                test1:'changedval',
-    //                select1:['bar'],
-    //                select2:['foo', 'bar'],
-    //                select3:['fizz'],
-    //                ce1name:'ce1value',
-    //                newfield:'newval'
-    //            }));
-    //        });
-    //
-    //        it('Allows JSON encoded data to be restructured before it is submitted', function() {
-    //            ajaxForm.domReady.call(jsonForm);
-    //
-    //            jsonForm.addEventListener('submitting', function(event) {
-    //                var oldData = event.detail.formData;
-    //                event.detail.formData = {
-    //                    testfields: {
-    //                        test1: oldData.test1
-    //                    },
-    //                    cefields: {
-    //                        ce1name: oldData.ce1name
-    //                    }
-    //                };
-    //            });
-    //
-    //            jsonForm.submit();
-    //
-    //            expect(requests[0].requestBody).to.equal(JSON.stringify({
-    //                testfields: {
-    //                    test1: 'foobar'
-    //                },
-    //                cefields: {
-    //                    ce1name: 'ce1value'
-    //                }
-    //            }));
-    //        });
-    //
-    //        it('Allows URL-encoded data to be augmented before it is submitted (GET)', function() {
-    //            typicalForm.setAttribute('method', 'GET');
-    //
-    //            ajaxForm.domReady.call(typicalForm);
-    //
-    //            typicalForm.addEventListener('submitting', function(event) {
-    //                event.detail.formData.newfield = 'newval';
-    //                event.detail.formData.test1 = 'changedval';
-    //            });
-    //
-    //            typicalForm.submit();
-    //
-    //            expect(requests[0].url).to.have.string('test1=changedval&ce1name=ce1value&newfield=newval');
-    //        });
-    //
-    //        it('Allows URL-encoded data to be augmented before it is submitted (POST)', function() {
-    //            typicalForm.setAttribute('method', 'POST');
-    //
-    //            ajaxForm.domReady.call(typicalForm);
-    //
-    //            typicalForm.addEventListener('submitting', function(event) {
-    //                event.detail.formData.newfield = 'newval';
-    //                event.detail.formData.test1 = 'changedval';
-    //            });
-    //
-    //            typicalForm.submit();
-    //
-    //            expect(requests[0].requestBody).to.equal('test1=changedval&ce1name=ce1value&newfield=newval');
-    //        });
-    //    });
-
 </script>
 
 </body>

@@ -3,7 +3,6 @@
             return Array.prototype.slice.call(pseudoArray);
         },
 
-    // TODO fix for IE (see https://gist.github.com/james2doyle/7945320)
         fire = function (node, type, _detail_) {
             var detail = _detail_ === null || _detail_ === undefined ? {} : _detail_,
                 event = new CustomEvent(type, {
