@@ -328,7 +328,7 @@
                 sendRequest({
                     contentType: getEnctype(ajaxForm),
                     form: ajaxForm,
-                    url: ajaxForm.action + (ajaxForm.action.indexOf('?') > 0 ? '&' : '?') + data,
+                    url: ajaxForm.action + (ajaxForm.action.indexOf('?') > 0 ? '&' : '?') + data
                 });
             }
         },
@@ -353,46 +353,47 @@
             return queryParams.join('&');
           },
 
-        watchForInvalidFields = function(ajaxForm, existingEventListeners) {
-            //var initialFields = arrayOf(ajaxForm.querySelectorAll(':invalid, :valid')),
-            //    invalidFields = [],
-            //
-            //    listenForInvalidEvent = function(field) {
-            //        field.willValidate && field.addEventListener('invalid', function() {
-            //            invalidFields.push(field.customElementRef || field);
-            //
-            //            // In case another element is invalid and the event
-            //            // hasn't been triggered yet, hold off on firing the
-            //            // invalid event on the custom el.
-            //            clearTimeout(timer);
-            //            timer = setTimeout(function() {
-            //                ajaxForm.fire('invalid', invalidFields);
-            //                invalidFields = [];
-            //                console.error('Form submission blocked - constraints violation.');
-            //            }, 10);
-            //        });
-            //    },
-            //
-            //    // Be sure to observe any validatable form fields added in the future
-            //    mutationHandler = function(observer, records) {
-            //        records.forEach(function(record) {
-            //            if (record.addedNodes.length) {
-            //                arrayOf(record.addedNodes).forEach(function(addedNode) {
-            //                    addedNode.willValidate && listenForInvalidEvent(addedNode);
-            //                });
-            //            }
-            //        });
-            //
-            //        ajaxForm.onMutation(ajaxForm, mutationHandler);
-            //    },
-            //
-            //    timer = null;
-            //
-            //initialFields.forEach(function(field) {
-            //    listenForInvalidEvent(field);
-            //});
-            //
-            //ajaxForm.onMutation(ajaxForm, mutationHandler);
+        watchForInvalidFields = function (ajaxForm) {
+            var config = {attributes: true, childList: true, characterData: false},
+                initialFields = arrayOf(ajaxForm.querySelectorAll(':invalid, :valid')),
+                invalidFields = [],
+
+                listenForInvalidEvent = function (field) {
+                    field.willValidate && field.addEventListener('invalid', function () {
+                        invalidFields.push(field.customElementRef || field);
+
+                        // In case another element is invalid and the event
+                        // hasn't been triggered yet, hold off on firing the
+                        // invalid event on the custom el.
+                        clearTimeout(timer);
+                        timer = setTimeout(function () {
+                            fire(ajaxForm, 'invalid', invalidFields);
+                            invalidFields = [];
+                            console.error('Form submission blocked - constraints violation.');
+                        }, 10);
+                    });
+                },
+
+            // Be sure to observe any validatable form fields added in the future
+                mutationHandler = new window.MutationObserver(function (records) {
+                    records.forEach(function (record) {
+                        if (record.addedNodes.length) {
+                            arrayOf(record.addedNodes).forEach(function (addedNode) {
+                                addedNode.willValidate && listenForInvalidEvent(addedNode);
+                            });
+                        }
+                    });
+                }),
+
+                timer = null;
+
+            initialFields.forEach(function (field) {
+                listenForInvalidEvent(field);
+            });
+
+            // pass in the target node, as well as the observer options
+            mutationHandler.observe(ajaxForm, config);
+
         };
 
     document.registerElement('ajax-form', {

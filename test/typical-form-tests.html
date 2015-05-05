@@ -7,7 +7,7 @@
     <script src="../../webcomponentsjs/webcomponents.min.js"></script>
     <script src="../node_modules/web-component-tester/browser.js"></script>
 
-    <link rel="import" href="../../file-input/file-input.html">
+    \
     <link rel="import" href="../ajax-form.html">
 </head>
 
@@ -289,56 +289,25 @@
         });
     });
 
-    //    describe('form validation', function() {
-    //        beforeEach(function() {
-    //            clock = sinon.useFakeTimers();
-    //
-    //            typicalForm.setAttribute('method', 'post');
-    //            requiredFileInputForm.setAttribute('method', 'post');
-    //            sinon.spy(typicalForm, 'fire');
-    //            sinon.spy(requiredFileInputForm, 'fire');
-    //        });
-    //
-    //        afterEach(function() {
-    //            typicalForm.fire.restore();
-    //            requiredFileInputForm.fire.restore();
-    //            clock.restore();
-    //        });
-    //
-    //        it('ensures invalid fields are identified and presented via a single event', function() {
-    //            var textInput1 = typicalForm.querySelector('input[name=test1]'),
-    //                    textInput3 = typicalForm.querySelector('input[name=test3]');
-    //
-    //            ajaxForm.domReady.call(typicalForm);
-    //
-    //            var inputInvalidEvent = document.createEvent('Event');
-    //            inputInvalidEvent.initEvent('invalid', true, true);
-    //
-    //            textInput1.dispatchEvent(inputInvalidEvent);
-    //            clock.tick(5); // give it some time to process
-    //
-    //            textInput3.dispatchEvent(inputInvalidEvent);
-    //            clock.tick(10); // give it some time to process
-    //
-    //            expect(typicalForm.fire).to.have.been.calledWith('invalid', [textInput1, textInput3]);
-    //        });
-    //
-    //        it('identifies invalid custom element fields with shadowed native form fields too', function() {
-    //            var fileInput = requiredFileInputForm.querySelector('file-input');
-    //
-    //            ajaxForm.domReady.call(requiredFileInputForm);
-    //
-    //            requiredFileInputForm.submit();
-    //
-    //            clock.tick(10); // give it some time to process
-    //
-    //            expect(requiredFileInputForm.fire).to.have.been.calledWith('invalid');
-    //            var fireCall = requiredFileInputForm.fire.getCall(0);
-    //            expect(fireCall.args[1][0].tagName).to.equal('FILE-INPUT');
-    //
-    //            expect(requiredFileInputForm.checkValidity()).to.equal(false);
-    //        });
-    //    });
+    describe('form validation', function () {
+        it('ensures invalid fields are identified and presented via a single event', function (done) {
+            createForm({method: 'POST', enctype: 'application/x-www-form-urlencoded'}, function () {
+                var textInput1 = ajaxForm.querySelector('input[name=test1]'),
+                        textInput3 = ajaxForm.querySelector('input[name=test3]');
+
+                ajaxForm.addEventListener('invalid', function (event) {
+                    expect(event.detail.length).to.equal(2);
+                    expect(event.detail[0].name).to.equal('test1');
+                    expect(event.detail[1].name).to.equal('test3');
+                    done();
+                });
+
+                var inputInvalidEvent = new CustomEvent('invalid');
+                textInput1.dispatchEvent(inputInvalidEvent);
+                textInput3.dispatchEvent(inputInvalidEvent);
+                });
+            });
+        });
 </script>
 
 </body>
