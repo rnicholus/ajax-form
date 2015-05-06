@@ -85,13 +85,13 @@
 
         maybeParseCustomElementOrFileInput = function(customElement, data, parseFileInputs) {
             if (customElement.tagName.indexOf('-') >= 0 ) {
-              if (customElement.value != null) {
-                data[customElement.getAttribute('name')] = customElement.value;
-                return true;
-              }
-              else if (parseFileInputs && customElement.files && customElement.files.length) {
-                 data[customElement.getAttribute('name')] = arrayOf(customElement.files);
-                 return true;
+                if (parseFileInputs && customElement.files && customElement.files.length) {
+                    data[customElement.getAttribute('name')] = arrayOf(customElement.files);
+                    return true;
+                }
+                else {
+                    data[customElement.getAttribute('name')] = customElement.value == null ? '' : customElement.value;
+                    return true;
               }
             }
         },
@@ -147,8 +147,8 @@
                 var key = formElement.name,
                     val = parseElementValue(formElement);
 
-                if (key && val) {
-                    formObj[key] = val;
+                if (key) {
+                    formObj[key] = val == null ? '' : val;
                 }
             });
 

@@ -119,7 +119,7 @@
             createForm({method: 'GET'}, function () {
                 ajaxForm.submit();
 
-                expect(requests[0].url).to.have.string('test1=foobar&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value');
+                expect(requests[0].url).to.have.string('test1=foobar&test2=&test3=&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value');
                 done();
             });
         });
@@ -129,7 +129,7 @@
                 ajaxForm.submit();
 
                 expect(requests[0].requestHeaders['Content-Type']).to.have.string('application/x-www-form-urlencoded');
-                expect(requests[0].requestBody).to.equal('test1=foobar&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value');
+                expect(requests[0].requestBody).to.equal('test1=foobar&test2=&test3=&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value');
                 done();
             });
         });
@@ -160,6 +160,8 @@
                 expect(requests[0].requestHeaders['Content-Type']).to.have.string('application/json');
                 expect(requests[0].requestBody).to.equal(JSON.stringify({
                     test1: 'foobar',
+                    test2: '',
+                    test3: '',
                     select1: ['bar'],
                     select2: ['foo', 'bar'],
                     select3: ['fizz'],
@@ -195,6 +197,8 @@
                 expect(requests[0].requestHeaders['Content-Type']).to.have.string('multipart/form-data');
                 expect(JSON.stringify(appendedData)).to.equal(JSON.stringify({
                     test1: 'foobar',
+                    test2: '',
+                    test3: '',
                     select1: 'bar',
                     'select2[]': 'foo',
                     'select2[]_series': 'bar',
@@ -222,6 +226,8 @@
 
                 expect(requests[0].requestBody).to.equal(JSON.stringify({
                     test1: 'changedval',
+                    test2: '',
+                    test3: '',
                     select1: ['bar'],
                     select2: ['foo', 'bar'],
                     select3: ['fizz'],
@@ -269,7 +275,7 @@
 
                 ajaxForm.submit();
 
-                expect(requests[0].url).to.have.string('test1=changedval&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value&newfield=newval');
+                expect(requests[0].url).to.have.string('test1=changedval&test2=&test3=&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value&newfield=newval');
                 done();
             });
         });
@@ -283,7 +289,7 @@
 
                 ajaxForm.submit();
 
-                expect(requests[0].requestBody).to.equal('test1=changedval&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value&newfield=newval');
+                expect(requests[0].requestBody).to.equal('test1=changedval&test2=&test3=&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value&newfield=newval');
                 done();
             });
         });
