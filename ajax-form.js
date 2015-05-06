@@ -57,10 +57,12 @@
             fakeSubmitEl.style.display = 'none';
             ajaxForm.appendChild(fakeSubmitEl);
             ajaxForm.submit = function() {
+                ajaxForm._preventValidityCheck = false;
                 if (ajaxForm.checkValidity()) {
                     fire(ajaxForm, 'submit');
                 }
                 else {
+                    ajaxForm._preventValidityCheck = true;
                     fakeSubmitEl.click();
                 }
             };
@@ -360,6 +362,10 @@
 
                 listenForInvalidEvent = function (field) {
                     field.willValidate && field.addEventListener('invalid', function () {
+                        if (ajaxForm._preventValidityCheck) {
+                            return;
+                        }
+
                         invalidFields.push(field.customElementRef || field);
 
                         // In case another element is invalid and the event
