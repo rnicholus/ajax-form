@@ -15,9 +15,6 @@
     "tests"
   ],
   "keywords": ["Polymer", "web-components", "form", "html", "ajax"],
-  "dependencies": {
-    "polymer": "Polymer/polymer#~0.5.1"
-  },
   "devDependencies": {
     "file-input": ">=1.1.4"
   }
