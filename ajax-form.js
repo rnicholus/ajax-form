@@ -232,22 +232,24 @@
                 formData = parseForm(ajaxForm, enctype === 'multipart/form-data'),
                 submittingEvent = fire(ajaxForm, 'submitting', {formData: formData});
 
-            formData = submittingEvent.detail.formData;
+            if (!submittingEvent.defaultPrevented) {
+                formData = submittingEvent.detail.formData;
 
-            if ('multipart/form-data' !== enctype &&
-                'application/json' !== enctype) {
+                if ('multipart/form-data' !== enctype &&
+                    'application/json' !== enctype) {
 
-                sendUrlencodedForm(ajaxForm, formData);
-            }
-            else {
-                if ('GET' === ajaxForm.acceptableMethod) {
                     sendUrlencodedForm(ajaxForm, formData);
                 }
-                else if ('multipart/form-data' === enctype) {
-                    sendMultipartForm(ajaxForm, formData);
-                }
-                else if ('application/json' === enctype) {
-                    sendJsonEncodedForm(ajaxForm, formData);
+                else {
+                    if ('GET' === ajaxForm.acceptableMethod) {
+                        sendUrlencodedForm(ajaxForm, formData);
+                    }
+                    else if ('multipart/form-data' === enctype) {
+                        sendMultipartForm(ajaxForm, formData);
+                    }
+                    else if ('application/json' === enctype) {
+                        sendJsonEncodedForm(ajaxForm, formData);
+                    }
                 }
             }
         },

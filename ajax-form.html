@@ -134,6 +134,9 @@ CORS on Mozilla Developer Network](https://developer.mozilla.org/en-US/docs/Web/
          * If you would like to modify or add to the form data before it is sent
          * to the server, do so here by making changes directly to `detail.formData`.
          *
+         * To prevent the form from being submitted, simply invoke the `preventDefault()`
+         * function on the `Event` object passed into your handler function.
+         *
          * NOTE: Do not deviate from the flat structure of the data unless the `enctype`
          * is "application/json".  Doing so for other encoding types may produce surprising
          * results.

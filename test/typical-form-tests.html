@@ -112,6 +112,19 @@
                 ajaxForm.submit();
             })
         });
+
+        it('prevents a form from being submitted if the submitting event\'s default action is prevented', function (done) {
+            createForm({method: 'GET'}, function () {
+                ajaxForm.addEventListener('submitting', function (event) {
+                    event.preventDefault();
+                });
+
+                ajaxForm.submit();
+
+                expect(requests.length).to.equal(0);
+                done();
+            });
+        });
     });
 
     describe('url encoding', function () {
