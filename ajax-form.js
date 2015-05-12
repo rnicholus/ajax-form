@@ -10,9 +10,29 @@
                     cancelable: true,
                     detail: detail
                 });
+
+            // hack to ensure preventDefault() in IE10+ actually sets the defaultPrevented property
+            if (customPreventDefaultIgnored) {
+                event.preventDefault = function () {
+                    Object.defineProperty(this, 'defaultPrevented', {
+                        get: function () {
+                            return true;
+                        }
+                    });
+                };
+            }
+
             node.dispatchEvent(event);
             return event;
         },
+
+        customPreventDefaultIgnored = (function () {
+            var tempElement = document.createElement('div'),
+                event = fire(tempElement, 'foobar');
+
+            event.preventDefault();
+            return !event.defaultPrevented;
+        }()),
 
         getEnctype = function(ajaxForm) {
             var enctype = ajaxForm.getAttribute('enctype');
