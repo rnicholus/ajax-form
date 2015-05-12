@@ -13,7 +13,7 @@ HTML forms on performance-enhancing drugs
 
 `bower update`
 
-See the [component page](http://ajax-form.raynicholus.com) for complete documentation and demos.
+See the [API documentation page](http://ajax-form.raynicholus.com) for complete documentation and demos.
 
 
 ## Integration
