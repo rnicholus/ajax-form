@@ -105,7 +105,7 @@
                     selectedItem = coreMenu && coreMenu.selectedItem;
 
                 if (selectedItem) {
-                    data[customElement.getAttribute('name')] = selectedItem.label || selectedItem.textContent;
+                    processFormValue(customElement.getAttribute('name'), selectedItem.label || selectedItem.textContent, data);
                     return true;
                 }
 
@@ -119,17 +119,17 @@
                 if (isCheckboxOrRadioButton(customElement)) {
                     var radioValue = parseRadioElementValue(customElement);
                     if (radioValue) {
-                        data[customElement.getAttribute('name')] = radioValue;
+                        processFormValue(customElement.getAttribute('name'), radioValue, data);
                         return true;
                     }
                 }
                 else {
-                    data[customElement.getAttribute('name')] = customElement.value;
+                    processFormValue(customElement.getAttribute('name'), customElement.value, data);
                     return true;
                 }
             }
             else if (parseFileInputs && customElement.files && customElement.files.length) {
-                data[customElement.getAttribute('name')] = arrayOf(customElement.files);
+                processFormValue(customElement.getAttribute('name'), arrayOf(customElement.files), data);
                 return true;
             }
         },
@@ -186,12 +186,12 @@
                     val = parseElementValue(formElement);
 
                 if (key && val != null) {
-                    formObj[key] = val;
+                    processFormValue(key, val, formObj);
                 }
             });
 
             Object.keys(customElementsData).forEach(function(fieldName) {
-                formObj[fieldName] = customElementsData[fieldName];
+                processFormValue(fieldName, customElementsData[fieldName], formObj);
             });
 
             return formObj;
@@ -267,6 +267,24 @@
             return elementValues;
         },
 
+        processFormValue = function(key, value, store) {
+            if (store[key]) {
+                if (Array.isArray(store[key]) &&
+                    store[key].length > 1 &&
+                    Array.isArray(store[key][1])) {
+
+                    store[key].push([value]);
+                }
+                else {
+                    store[key] = [[store[key]]];
+                    store[key].push([value]);
+                }
+            }
+            else {
+                store[key] = value;
+            }
+        },
+
         sendFormData = function(ajaxForm) {
             var enctype = getEnctype(ajaxForm),
                 formData = parseForm(ajaxForm, enctype === 'multipart/form-data'),
@@ -309,10 +327,6 @@
                 var fieldValue = data[fieldName];
 
                 if (Array.isArray(fieldValue)) {
-                    if (fieldValue.length > 1) {
-                        fieldName += '[]';
-                    }
-
                     fieldValue.forEach(function(file) {
                         formData.append(fieldName, file);
                     });
@@ -422,7 +436,7 @@
                     });
                 },
 
-            // Be sure to observe any validatable form fields added in the future
+                // Be sure to observe any validatable form fields added in the future
                 mutationHandler = new window.MutationObserver(function (records) {
                     records.forEach(function (record) {
                         if (record.addedNodes.length) {

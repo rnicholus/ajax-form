@@ -49,6 +49,10 @@
                         '<input type="checkbox" name="checkboxname" value="checkboxvalue">' +
                         '<custom-checkbox role="checkbox" name="customcheckboxname"></custom-checkbox>' +
 
+                        '<input type="checkbox" name="checkboxgroup" value="foo" checked>' +
+                        '<input type="checkbox" name="checkboxgroup" value="bar" checked>' +
+                        '<input type="checkbox" name="checkboxgroup" value="fizz">' +
+
                         '</form>';
 
                 var container = document.createElement('span');
@@ -142,7 +146,7 @@
             createForm({method: 'GET'}, function () {
                 ajaxForm.submit();
 
-                expect(requests[0].url).to.have.string('test1=foobar&test2=&test3=&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value');
+                expect(requests[0].url).to.have.string('test1=foobar&test2=&test3=&checkboxgroup=foo&checkboxgroup=bar&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value');
                 done();
             });
         });
@@ -152,7 +156,7 @@
                 ajaxForm.submit();
 
                 expect(requests[0].requestHeaders['Content-Type']).to.have.string('application/x-www-form-urlencoded');
-                expect(requests[0].requestBody).to.equal('test1=foobar&test2=&test3=&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value');
+                expect(requests[0].requestBody).to.equal('test1=foobar&test2=&test3=&checkboxgroup=foo&checkboxgroup=bar&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value');
                 done();
             });
         });
@@ -166,7 +170,7 @@
                 ajaxForm.querySelector('[name="checkboxname"]').click();
                 ajaxForm.submit();
 
-                expect(requests[0].requestBody).to.equal('test1=foobar&test2=&test3=&checkboxname=checkboxvalue&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value&customcheckboxname=customcheckboxvalue');
+                expect(requests[0].requestBody).to.equal('test1=foobar&test2=&test3=&checkboxname=checkboxvalue&checkboxgroup=foo&checkboxgroup=bar&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value&customcheckboxname=customcheckboxvalue');
                 done();
             });
         });
@@ -199,6 +203,7 @@
                     test1: 'foobar',
                     test2: '',
                     test3: '',
+                    checkboxgroup: [['foo'], ['bar']],
                     select1: ['bar'],
                     select2: ['foo', 'bar'],
                     select3: ['fizz'],
@@ -236,9 +241,11 @@
                     test1: 'foobar',
                     test2: '',
                     test3: '',
+                    checkboxgroup: ['foo'],
+                    checkboxgroup_series: ['bar'],
                     select1: 'bar',
-                    'select2[]': 'foo',
-                    'select2[]_series': 'bar',
+                    'select2': 'foo',
+                    'select2_series': 'bar',
                     select3: 'fizz',
                     ce1name: 'ce1value'
                 }));
@@ -265,6 +272,7 @@
                     test1: 'changedval',
                     test2: '',
                     test3: '',
+                    checkboxgroup: [['foo'], ['bar']],
                     select1: ['bar'],
                     select2: ['foo', 'bar'],
                     select3: ['fizz'],
@@ -308,11 +316,12 @@
                 ajaxForm.addEventListener('submitting', function (event) {
                     event.detail.formData.newfield = 'newval';
                     event.detail.formData.test1 = 'changedval';
+                    event.detail.formData.checkboxgroup[1][0] = 'newcbgroupval';
                 });
 
                 ajaxForm.submit();
 
-                expect(requests[0].url).to.have.string('test1=changedval&test2=&test3=&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value&newfield=newval');
+                expect(requests[0].url).to.have.string('test1=changedval&test2=&test3=&checkboxgroup=foo&checkboxgroup=newcbgroupval&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value&newfield=newval');
                 done();
             });
         });
@@ -326,7 +335,7 @@
 
                 ajaxForm.submit();
 
-                expect(requests[0].requestBody).to.equal('test1=changedval&test2=&test3=&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value&newfield=newval');
+                expect(requests[0].requestBody).to.equal('test1=changedval&test2=&test3=&checkboxgroup=foo&checkboxgroup=bar&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value&newfield=newval');
                 done();
             });
         });
