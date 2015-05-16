@@ -49,5 +49,5 @@ module.exports = function(grunt) {
 
     grunt.registerTask('default', ['jshint', 'shell:wctLocal']);
     grunt.registerTask('travis', ['jshint', 'shell:wctSauce']);
-    grunt.registerTask('publishToNpm', ['jshint', 'wct-test:desktop', 'copy:npmPreRelease', 'shell:npmRelease']);
+    grunt.registerTask('publishToNpm', ['jshint', 'shell:wctLocal', 'copy:npmPreRelease', 'shell:npmRelease']);
 };
