@@ -141,6 +141,11 @@ CORS on Mozilla Developer Network](https://developer.mozilla.org/en-US/docs/Web/
          * is "application/json".  Doing so for other encoding types may produce surprising
          * results.
          *
+         * NOTE: Form fields that share the same name will be represented as entries inside
+         * of a mutli-dimensional array. For example, if there are two text inputs, both with
+         * a name of "someName", with the first input having a value of "foo" and the second "bar",
+         * the entry in the `detailFormData` object will be `'someName': [['foo'], ['bar']`.
+         *
          *     form.addEventListener('submitting',
          *         function(event) {
          *             var formData = event.detail.formData;
@@ -212,6 +217,11 @@ CORS on Mozilla Developer Network](https://developer.mozilla.org/en-US/docs/Web/
          * - application/x-www-form-urlencoded
          * - multipart/form-data
          * - application/json
+         *
+         * NOTE: For "application/json" forms, form fields that share the same name will be represented
+         * as entries inside of a mutli-dimensional array. For example, if there are two text inputs,
+         * both with a name of "someName", with the first input having a value of "foo" and the second "bar",
+         * the entry in the submit request will be `'someName': [['foo'], ['bar']`.
          *
          * @attribute enctype
          * @type string
