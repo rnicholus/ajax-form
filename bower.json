@@ -1,0 +1,7 @@
+{
+  "name": "ajax-form#gh-pages",
+  "private": true,
+  "dependencies": {
+    "ajax-form": "rnicholus/ajax-form#master"
+  }
+}

@@ -1,0 +1,266 @@
+<script src="ajax-form.js"></script>
+
+<!--
+## HTML forms on performance-enhancing drugs
+
+The `ajax-form` element adds some more power and features to traditional HTML forms.
+Also allows the `<file-input>` custom element (and any other custom element form fields
+that have a `name` attribute and a `value`) to be submitted along with other traditional
+form elements.
+
+Check out the GitHub repository at https://github.com/rnicholus/ajax-form.
+
+### What's wrong with a traditional `<form>`?
+
+1. Form submission changes/reloads the page, and it's not trivial to properly prevent this.
+2. You can't send custom headers with a submitted form.
+3. You can't (easily) parse the server response after a form is submitted.
+4. Programmatically tracking invalid forms/fields is frustrating.
+5. You can't send form data as JSON.
+6. You have no opportunity to programmatically augment user-entered data before it is sent to the server.
+
+`ajax-form` augments a traditional `<form>` to provide additional features and solve the problems listed above.
+
+### A very simple use of `ajax-form` looks just like a normal `<form>`, with the addition of an `is` attribute:
+
+    <form is="ajax-form" action="my/form/handler" method="post">
+        <label>Enter your name: <input type="text" name="full_name"></label>
+        ...
+    </form>
+
+### The inclusion of the `is="ajax-form"` attribute gives the `<form>` special powers, such as:
+1. Callbacks when form validation fails, just before the form is submitted, and after the server has responded.
+2. The ability to send custom headers to the server with the submit request.
+3. Prevention of a page reload/redirect on submit.
+4. The ability to include the [`<file-input>` custom element](https://github.com/rnicholus/file-input) as a `<form>` field.
+
+### Submitting
+Submit your form just as you would any other form.  For example:
+1. Via an `<input type="submit">`.
+2. Via a `<button type="submit">`.
+3. By calling `submit()` on the `<form>` element.
+
+If you are, for example, using a [`<paper-button>`](https://www.polymer-project.org/docs/elements/paper-elements.html#paper-button),
+you'll need to [attach a click handler to the button](https://github.com/rnicholus/ajax-form/issues/27#issuecomment-64512558)
+and submit the form when this handler is invoked.
+
+### Integration with `<file-input>` custom element
+Want a better `<input type="file">` element that can be easily styled, has built-in,
+customizable validation, and provides an improved API?  Check out the [`<file-input>` custom element](https://github.com/rnicholus/file-input).
+`ajax-form` allows `<file-input>` custom element to be submitted along with other standard
+form fields.  Just include your `<file-input>` element as a child of your `<form is="ajax-form">`.
+That's it!
+
+As an added benefit, ONLY valid files (not those that have failed any validation rules setup in your `<file-input>` element)
+will be sent along with the request!
+
+### Integration with generic custom elements form fields (such as `<paper-input>`)
+You can easily submit a `<paper-input>` or `<core-input>` element.  Just place it
+in your `<ajax-form>`, and be sure it has a `name` attribute.  In fact, any
+custom element form field with a `name` attribute can be handled by `<ajax-form>`,
+provided the value to send to the server is exposed via a `value` property on the
+element.
+
+### Integration with `<paper-dropdown-menu>` & `<core-dropdown-menu>`
+`<paper-dropdown-menu>` and `<core-dropdown-menu>` elements can be submitted too!
+Just place one or more of these element in your `<ajax-form>` and be sure
+to include a `name` attribute.
+
+### Modifying the data to be submitted
+You have an opportunity to do this by registering a "submitting" event handler.  All data
+in the form, parsed into a JavaScript object (keys = field names, values = field values) will
+be included on the event's `detail.formData` property.  You can modify `formData` however you wish.
+Your changes will represent the actual data submitted to your endpoint.  Note that files, if applicable,
+will be included in this object as well!
+
+### Handling the request server-side
+If you include a `<file-input>` field, files will be sent with a name according to the `name` attribute on the `<file-input>`.
+If more than one file has been selected, the `name` attribute for each file in the request
+will include a "[]" at the end of the name string.
+
+### Cross-origin form submits (CORS)
+Please note that all forms are actually "submitted" using `XMLHttpRequest`.  This means that
+your server must include appropriate CORS headers in the response if you want access to the
+response data **if the request is a cross-origin request**.  Also, requests with custom headers
+will be preflighted as well, so your server must handle these correctly.  [Read more about
+CORS on Mozilla Developer Network](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS).
+
+@element ajax-form
+@homepage index.html
+-->
+<template class="ajax-form-template">
+    <content></content>
+
+    <script>
+        /**
+         * If your form has one or more fields with an [HTML5 validation attribute](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/Constraint_validation)
+         * (such as `required`), this event will be triggered once after a
+         * submit attempt if any of the fields do not pass validation checks.
+         * All invalid field elements will be passed in an array represented by
+         * the `detail` property of the event passed to your handler.
+         *
+         *     form.addEventListener('invalid',
+         *         function(event) {
+         *             event.detail.forEach(function(badEl) {
+         *                 // handle invalid element
+         *             });
+         *          }
+         *      );
+         *
+         * @event invalid
+         */
+
+        /**
+         * Invoked after the form has been submitted and a response has been
+         * received from the server. The associated `XMLHttpRequest` instance
+         * used to send the request will be passed to your event handler
+         * on the event's `detail` property.
+         *
+         *     form.addEventListener('submitted',
+         *         function(event) {
+         *             if (event.detail.status > 299) {
+         *                 // submit has failed
+         *             }
+         *         }
+         *     );
+         *
+         * @event submitted
+         */
+
+        /**
+         * Invoked after the form has passed all validation checks, and
+         * just before the request is sent.  A JavaScript object representing
+         * the parsed field data will be attached to the `detail.formData` property.
+         * If you would like to modify or add to the form data before it is sent
+         * to the server, do so here by making changes directly to `detail.formData`.
+         *
+         * To prevent the form from being submitted, simply invoke the `preventDefault()`
+         * function on the `Event` object passed into your handler function.
+         *
+         * NOTE: Do not deviate from the flat structure of the data unless the `enctype`
+         * is "application/json".  Doing so for other encoding types may produce surprising
+         * results.
+         *
+         * NOTE: Form fields that share the same name will be represented as entries inside
+         * of a mutli-dimensional array. For example, if there are two text inputs, both with
+         * a name of "someName", with the first input having a value of "foo" and the second "bar",
+         * the entry in the `detailFormData` object will be `'someName': [['foo'], ['bar']`.
+         *
+         *     form.addEventListener('submitting',
+         *         function(event) {
+         *             var formData = event.detail.formData;
+         *             // optionally modify formData...
+         *         }
+         *     );
+         *
+         * @event submitting
+         */
+
+        /**
+         * Same as the action attribute of a non-ajax `<form>`.
+         * This will hold the path to your server that is set to handle
+         * the request.
+         *
+         *     <form is="ajax-form"
+         *         method="POST"
+         *         action="form/handler">
+         *         ...
+         *     </form>
+         *
+         * The above form will be submitted to the "form/handler"
+         * endpoint server on the current domain.
+         *
+         * @attribute action
+         * @type string
+         * @default ''
+         */
+
+        /**
+         * Only applicable for cross-origin form submits. If included,
+         * cookies will be included with any cross-origin form submit request.
+         * If not included, cookies will NOT be sent with any
+         * cross-origin form submit request.
+         *
+         *     <form is="ajax-form"
+         *         method="POST"
+         *         action="http://otherdomain.com/form/handler"
+         *         cookies>
+         *         ...
+         *     </form>
+         *
+         * The above example will ensure that cookies are included with
+         * the request that is sent when the form is submitted to
+         * the origin reference in the action attribute (which presumably
+         * is a domain different than the one hosting the form).
+         *
+         * @attribute cookies
+         */
+
+        /**
+         * The encoding type for the underlying request's message-body.
+         *
+         *     <form is="ajax-form"
+         *         method="POST"
+         *         action="form/handler"
+         *         enctype="multipart/form-data">
+         *         ...
+         *     </form>
+         *
+         * The above form will be submitted as a multipart encoded POST request.
+         * By default, without an enctype specified, "application/x-www-form-urlencoded"
+         * is assumed.  GET requests will not have a body, and the form fields
+         * will be URL encoded as URI query parameters.
+         *
+         * Supported enctype values are:
+         * - application/x-www-form-urlencoded
+         * - multipart/form-data
+         * - application/json
+         *
+         * NOTE: For "application/json" forms, form fields that share the same name will be represented
+         * as entries inside of a mutli-dimensional array. For example, if there are two text inputs,
+         * both with a name of "someName", with the first input having a value of "foo" and the second "bar",
+         * the entry in the submit request will be `'someName': [['foo'], ['bar']`.
+         *
+         * @attribute enctype
+         * @type string
+         * @default 'application/x-www-form-urlencoded'
+         */
+
+        /**
+         * Custom headers to be sent with the form submit request.
+         * The value must be a JSON Object containing header names and values.
+         *
+         *     <form is="ajax-form"
+         *         method="POST"
+         *         action="form/handler"
+         *         headers='{"X-Cust-Header": "FooBar"}'>
+         *         ...
+         *     </form>
+         *
+         * The above form will be submitted with an "X-Cust-Header"
+         * header that contains a value of "FooBar".
+         *
+         * @attribute headers
+         * @type Object
+         * @default null
+         */
+
+        /**
+         * Same as the method attribute of a non-ajax `<form>`.
+         * The method to use when sending the request. Currently,
+         * GET, POST, PUT, and PATCH are allowed.
+         *
+         *     <form is="ajax-form"
+         *         method="put"
+         *         action="form/handler">
+         *         ...
+         *     </form>
+         *
+         * The above form will be submitted as a PUT request.
+         *
+         * @attribute method
+         * @type string
+         * @default 'GET'
+         */
+    </script>
+</template>
