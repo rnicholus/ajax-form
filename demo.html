@@ -56,7 +56,7 @@
         <h1 id="pleaseWait" class="hidden">Sending your data...</h1>
 
         <div id="content">
-            <form is="ajax-form" action="test" method="post">
+            <form is="ajax-form" action="test" method="post" enctype="multipart/form-data">
                 <div>
                     <label>Full Name: <input type="text" name="name" required></label>
                 </div>
@@ -69,10 +69,14 @@
                     <label>Favorite color: <input type="text" name="color"></label>
                 </div>
 
+                <input type="file" name="file">
+                <custom-checkbox role="checkbox" name="customcheckboxname" value="customcheckboxvalue">cust check</custom-checkbox>
+
                 <div>
                     <b>Receive periodic email updates from us?</b>
                     <input type="radio" name="emailCommunication" value="yes" checked>yes
                     <input type="radio" name="emailCommunication" value="no">no
+                    <input type="checkbox" name="testcheck" value="testval">testcheck
                 </div>
 
                 <input type="submit">
@@ -143,14 +147,14 @@
         // with the form submit.  This is needed since the demo doesn't have
         // a server to handle these requests.
         (function() {
-            sinon.FakeXMLHttpRequest.useFilters = true;
-            sinon.FakeXMLHttpRequest.addFilter(function (method, url) {
-                return !(/test/).test(url);
-            });
-            var server = sinon.fakeServer.create();
-            server.respondWith([200, {}, '']);
-            server.autoRespond = true;
-            server.autoRespondAfter = 5000;
+//            sinon.FakeXMLHttpRequest.useFilters = true;
+//            sinon.FakeXMLHttpRequest.addFilter(function (method, url) {
+//                return !(/test/).test(url);
+//            });
+//            var server = sinon.fakeServer.create();
+//            server.respondWith([200, {}, '']);
+//            server.autoRespond = true;
+//            server.autoRespondAfter = 5000;
         }());
     </script>
 

@@ -466,9 +466,8 @@
                     // Need to look into this further.
                     ajaxForm.acceptableMethod = getValidMethod(ajaxForm.getAttribute('method'));
 
-                    if (!ajaxForm.acceptableMethod) {
-                        throw new Error('Invalid method!');
-                    }
+                    // default method is GET
+                    ajaxForm.acceptableMethod = ajaxForm.acceptableMethod || 'GET';
 
                     watchForInvalidFields(ajaxForm);
                     interceptSubmit(ajaxForm);
