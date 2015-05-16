@@ -50,7 +50,7 @@
             }
         },
 
-    // Note that _currentScript is a polyfill-specific convention
+        // Note that _currentScript is a polyfill-specific convention
         importDoc = document._currentScript.ownerDocument,
 
         // NOTE: Safari doesn't have any visual indications when submit is blocked
@@ -88,6 +88,16 @@
             };
         },
 
+        isCheckboxOrRadioButton = function(element) {
+            var elementType = element.type,
+                role = element.getAttribute('role');
+
+            return elementType === 'checkbox' ||
+                role === 'checkbox' ||
+                elementType === 'radio' ||
+                role === 'radio';
+        },
+
         maybeParseCoreDropdownMenu = function(customElement, data) {
             if (customElement.tagName.toLowerCase() === 'core-dropdown-menu' ||
                 customElement.tagName.toLowerCase() === 'paper-dropdown-menu') {
@@ -105,14 +115,22 @@
 
         maybeParseCustomElementOrFileInput = function(customElement, data, parseFileInputs) {
             if (customElement.tagName.indexOf('-') >= 0 ) {
-                if (parseFileInputs && customElement.files && customElement.files.length) {
-                    data[customElement.getAttribute('name')] = arrayOf(customElement.files);
-                    return true;
+
+                if (isCheckboxOrRadioButton(customElement)) {
+                    var radioValue = parseRadioElementValue(customElement);
+                    if (radioValue) {
+                        data[customElement.getAttribute('name')] = radioValue;
+                        return true;
+                    }
                 }
                 else {
-                    data[customElement.getAttribute('name')] = customElement.value == null ? '' : customElement.value;
+                    data[customElement.getAttribute('name')] = customElement.value;
                     return true;
-              }
+                }
+            }
+            else if (parseFileInputs && customElement.files && customElement.files.length) {
+                data[customElement.getAttribute('name')] = arrayOf(customElement.files);
+                return true;
             }
         },
 
@@ -136,11 +154,11 @@
             var elementValue,
                 elementTag = element.tagName.toLowerCase();
 
-            if (elementTag === 'input') {
+            if (elementTag === 'input' && element.type !== 'file') {
                 elementValue = parseInputElementValue(element);
             }
-            else if (elementTag === 'textarea'){
-                elementValue = element.value;
+            else if (elementTag === 'textarea') {
+                elementValue = element.value || '';
             }
             else if (elementTag === 'select') {
                 elementValue = parseSelectElementValues(element);
@@ -167,8 +185,8 @@
                 var key = formElement.name,
                     val = parseElementValue(formElement);
 
-                if (key) {
-                    formObj[key] = val == null ? '' : val;
+                if (key && val != null) {
+                    formObj[key] = val;
                 }
             });
 
@@ -192,10 +210,12 @@
                 ['submit', 'reset', 'button', 'image'].indexOf(elementType) !== -1) {
                 // do nothing for these button types
             }
-            else if (elementType === 'radio') {
+            // support checkboxes, radio buttons or elements that behave as such
+            else if (isCheckboxOrRadioButton(element)) {
                 elementValue = parseRadioElementValue(element);
-            } else {
-                elementValue = element.value;
+            }
+            else {
+                elementValue = element.value || '';
             }
 
             return elementValue;
