@@ -7,11 +7,15 @@ HTML forms on performance-enhancing drugs
 
 ## Installation
 
-`bower install ajax-form`
+`npm install ajax-form`
 
-...or if you have a bower.json file with an entry for ajax-form:
+## Use
 
-`bower update`
+Use ajax-form just like you would use a traditional form, with the exception of the required `is="ajax-form"` attribute
+that you _must_ include in your `<form>` element markup. Since ajax-form is a web component, you may need to include a
+web component polyfill, such as [webcomponents.js](http://webcomponents.org/) to ensure browsers
+that do not implement the WC spec are able to make use of ajax-form. Ajax-form has *no* hard
+dependencies.
 
 See the [API documentation page](http://ajax-form.raynicholus.com) for complete documentation and demos.
 
@@ -51,10 +55,9 @@ for an example.
 ```
 npm install
 npm install -g grunt-cli
-bower update
 grunt
 ```
 
 - Running `grunt` without any parameters will test against a few locally installed browsers (see the codebase for details).
 
-- Running `grunt wct-test:remote` will run tests against a number of browsers in SauceLabs.  Ensure you have your SauceLabs username and key attached to the proper environment variables first.
+- Running `grunt shell:wctSauce` will run tests against a number of browsers in SauceLabs.  Ensure you have your SauceLabs username and key attached to the proper environment variables first.
