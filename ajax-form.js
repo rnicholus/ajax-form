@@ -113,9 +113,10 @@
         },
 
         maybeParseCustomElementOrFileInput = function(spec) {
-            if (spec.customElement.tagName.indexOf('-') >= 0 ) {
-                var name = spec.customElement.getAttribute('name');
+            var name = spec.customElement.getAttribute('name');
+            spec.name = name;
 
+            if (spec.customElement.tagName.indexOf('-') >= 0 ) {
                 if (isCheckboxOrRadioButton(spec.customElement)) {
                     var radioValue = parseRadioElementValue(spec.customElement);
                     if (radioValue) {
@@ -124,16 +125,24 @@
                     }
                 }
                 else if (spec.customElement.files) {
-                    if (spec.parseFileInputs) {
-                        processFormValue(name, arrayOf(spec.customElement.files), spec.data);
-                        spec.form._fileInputFieldNames.push(name);
-                    }
+                    maybeParseFileInput(spec);
                     return true;
                 }
-                else {
+                else if (!spec.customElement.files) {
                     processFormValue(name, spec.customElement.value, spec.data);
                     return true;
                 }
+            }
+            else if (spec.customElement.files) {
+                maybeParseFileInput(spec);
+                return true;
+            }
+        },
+
+        maybeParseFileInput = function(spec) {
+            if (spec.parseFileInputs) {
+                processFormValue(spec.name, arrayOf(spec.customElement.files), spec.data);
+                spec.form._fileInputFieldNames.push(spec.name);
             }
         },
 
