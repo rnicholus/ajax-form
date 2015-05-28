@@ -242,7 +242,7 @@
             createForm({method: 'POST', enctype: 'multipart/form-data'}, function () {
                 ajaxForm.submit();
 
-                expect(requests[0].requestHeaders['Content-Type']).to.have.string('multipart/form-data');
+                expect(requests[0].requestHeaders['Content-Type']).to.equal(undefined);
                 expect(JSON.stringify(appendedData)).to.equal(JSON.stringify({
                     test1: 'foobar',
                     test2: '',
@@ -265,7 +265,7 @@
                 ajaxForm.querySelector('[name="files"]').files = ['placeholder-file'];
                 ajaxForm.submit();
 
-                expect(requests[0].requestHeaders['Content-Type']).to.have.string('multipart/form-data');
+                expect(requests[0].requestHeaders['Content-Type']).to.equal(undefined);
                 expect(JSON.stringify(appendedData)).to.equal(JSON.stringify({
                     test1: 'foobar',
                     test2: '',
@@ -288,7 +288,7 @@
                 ajaxForm.querySelector('[name="files"]').files = ['placeholder-file1', 'placeholder-file2'];
                 ajaxForm.submit();
 
-                expect(requests[0].requestHeaders['Content-Type']).to.have.string('multipart/form-data');
+                expect(requests[0].requestHeaders['Content-Type']).to.equal(undefined);
                 expect(JSON.stringify(appendedData)).to.equal(JSON.stringify({
                     test1: 'foobar',
                     test2: '',

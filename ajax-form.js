@@ -341,7 +341,6 @@
 
             sendRequest({
                 body: formData,
-                contentType: getEnctype(ajaxForm),
                 form: ajaxForm
             });
         },
