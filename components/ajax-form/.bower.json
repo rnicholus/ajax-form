@@ -24,14 +24,13 @@
     "file-input": ">=1.1.4"
   },
   "homepage": "https://github.com/rnicholus/ajax-form",
-  "_release": "62213dbb37",
+  "_release": "f68af91ece",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "62213dbb37955c8be07271ff9c223f27baffea39"
+    "commit": "f68af91ecec55d9c5f2a72e8e9c97a513d097a85"
   },
   "_source": "git://github.com/rnicholus/ajax-form.git",
   "_target": "master",
-  "_originalSource": "rnicholus/ajax-form",
-  "_direct": true
+  "_originalSource": "rnicholus/ajax-form"
 }
