@@ -236,6 +236,9 @@
         });
 
         it('encodes the form fields and includes them in the payload - empty file input', function (done) {
+            var safari7 = window.navigator.userAgent.indexOf('Mac OS X 10_9') > 0 &&
+                            window.navigator.userAgent.indexOf('Version/7.') > 0 &&
+                            window.navigator.userAgent.indexOf('Safari') > 0;
             createForm({method: 'POST', enctype: 'multipart/form-data'}, function () {
                 ajaxForm.submit();
 
@@ -251,7 +254,7 @@
                     'select2_series': 'bar',
                     select3: 'fizz',
                     ce1name: 'ce1value',
-                    files: {}
+                    files: safari7 ? {size: 0, type:'application/octet-stream'} : {}
                 }));
                 done();
             });
