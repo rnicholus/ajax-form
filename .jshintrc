@@ -43,6 +43,7 @@
     "predef": [
         "afterEach",
         "beforeEach",
+        "Blob",
         "clearTimeout",
         "console",
         "CustomEvent",

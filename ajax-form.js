@@ -106,40 +106,50 @@
 
                 if (selectedItem) {
                     processFormValue(customElement.getAttribute('name'), selectedItem.label || selectedItem.textContent, data);
-                    return true;
                 }
 
                 return true;
             }
         },
 
-        maybeParseCustomElementOrFileInput = function(customElement, data, parseFileInputs) {
-            if (customElement.tagName.indexOf('-') >= 0 ) {
+        maybeParseCustomElementOrFileInput = function(spec) {
+            if (spec.customElement.tagName.indexOf('-') >= 0 ) {
+                var name = spec.customElement.getAttribute('name');
 
-                if (isCheckboxOrRadioButton(customElement)) {
-                    var radioValue = parseRadioElementValue(customElement);
+                if (isCheckboxOrRadioButton(spec.customElement)) {
+                    var radioValue = parseRadioElementValue(spec.customElement);
                     if (radioValue) {
-                        processFormValue(customElement.getAttribute('name'), radioValue, data);
+                        processFormValue(name, radioValue, spec.data);
                         return true;
                     }
                 }
-                else {
-                    processFormValue(customElement.getAttribute('name'), customElement.value, data);
+                else if (spec.customElement.files) {
+                    if (spec.parseFileInputs) {
+                        processFormValue(name, arrayOf(spec.customElement.files), spec.data);
+                        spec.form._fileInputFieldNames.push(name);
+                    }
                     return true;
                 }
-            }
-            else if (parseFileInputs && customElement.files && customElement.files.length) {
-                processFormValue(customElement.getAttribute('name'), arrayOf(customElement.files), data);
-                return true;
+                else {
+                    processFormValue(name, spec.customElement.value, spec.data);
+                    return true;
+                }
             }
         },
 
         parseCustomElements = function(form, parseFileInputs) {
             var data = {};
 
+            form._fileInputFieldNames = [];
+
             arrayOf(form.querySelectorAll('*[name]')).forEach(function(el) {
                 maybeParseCoreDropdownMenu(el, data) ||
-                maybeParseCustomElementOrFileInput(el, data, parseFileInputs);
+                maybeParseCustomElementOrFileInput({
+                    customElement: el,
+                    data: data,
+                    form: form,
+                    parseFileInputs: parseFileInputs
+                });
             });
 
             return data;
@@ -167,11 +177,6 @@
             return elementValue;
         },
 
-        /**
-         * Parse an `HTMLFormElement` into key value pairs
-         * @param HTMLFormElement form
-         * @return Object key, value pairs representing the html form
-         */
         parseForm = function(form, parseFileInputs) {
             var formObj = {},
                 formElements = form.querySelectorAll('input'),
@@ -197,11 +202,6 @@
             return formObj;
         },
 
-        /**
-         * Parse an `HTMLInputElement`'s value.
-         * @param HTMLInputElement element
-         * @return mixed The element's value
-         */
         parseInputElementValue = function(element){
             var elementValue,
                 elementType = element.type;
@@ -221,13 +221,6 @@
             return elementValue;
         },
 
-        /**
-         * Parse an `HTMLRadioElement`'s value, returning the value iff
-         * the element has a present `checked` attribute.
-         *
-         * @param HTMLRadioElement element
-         * @return mixed The element's value
-         */
         parseRadioElementValue = function(element) {
             var value;
             if (element.checked === true) {
@@ -236,12 +229,6 @@
             return value;
         },
 
-        /**
-         * Parse an `HTMLOptionElement`'s value, returning the value iff
-         * the element has a present `selected` attribute.
-         * @param HTMLOptionElement element
-         * @return mixed The element's value
-         */
         parseSelectOptionElementValue = function(element) {
             var elementValue;
             if (element.selected === true){
@@ -250,12 +237,6 @@
             return elementValue;
         },
 
-        /**
-         * Parse an `HTMLSelectElement`'s value.
-         *
-         * @param HTMLSelectElement element
-         * @return mixed The element's selected values
-         */
         parseSelectElementValues = function(element) {
             var elementValues = [];
 
@@ -327,9 +308,22 @@
                 var fieldValue = data[fieldName];
 
                 if (Array.isArray(fieldValue)) {
-                    fieldValue.forEach(function(file) {
-                        formData.append(fieldName, file);
-                    });
+                    // If this is a file input field value, and there are no
+                    // selected files, ensure this is accounted for in the
+                    // request as an empty filename w/ an empty application/octet-stream
+                    // boundary body. This is how a native form submit accounts for an
+                    // empty file input.
+                    if (fieldValue.length === 0 &&
+                        ajaxForm._fileInputFieldNames.indexOf(fieldName) >= 0) {
+
+                        formData.append(fieldName,
+                            new Blob([], {type : 'application/octet-stream'}), '');
+                    }
+                    else {
+                        fieldValue.forEach(function(file) {
+                            formData.append(fieldName, file);
+                        });
+                    }
                 }
                 else {
                     formData.append(fieldName, data[fieldName]);
