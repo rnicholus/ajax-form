@@ -22,11 +22,18 @@ The `ajax-form` custom element augments a traditional `<form>` to provide additi
 
 ## Use
 
-Use ajax-form just like you would use a traditional form, with the exception of the required `is="ajax-form"` attribute
-that you _must_ include in your `<form>` element markup. Since ajax-form is a web component, you may need to include a
-web component polyfill, such as [webcomponents.js](http://webcomponents.org/) to ensure browsers
+Use ajax-form just like you would use a traditional form, with the exception of the required `is="ajax-form"` attribute that you _must_ include in your `<form>` element markup. Since ajax-form is a web component, you may need to include a web component polyfill, such as [webcomponents.js](http://webcomponents.org/) to ensure browsers
 that do not implement the WC spec are able to make use of ajax-form. Ajax-form has *no* hard
 dependencies.
+
+A very simple use of `ajax-form` looks just like a normal `<form>`, with the addition of an `is` attribute:
+
+```html
+<form is="ajax-form" action="my/form/handler" method="post">
+    <label>Enter your name: <input type="text" name="full_name"></label>
+    ...
+</form>
+```
 
 See the [API documentation page](http://ajax-form.raynicholus.com) for complete documentation and demos.
 
