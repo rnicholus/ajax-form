@@ -40,12 +40,12 @@ module.exports = {
                         "platform":    "Windows 8.1",
                         "version":     ""
                     },
-                    {
-                        "browserName": "firefox",
-                        "platform":    "Linux",
-                        "version":     "beta"
-                    },
-
+                    //{
+                    //    "browserName": "firefox",
+                    //    "platform":    "Linux",
+                    //    "version":     "beta"
+                    //},
+                    //
                     //{
                     //    "browserName": "safari",
                     //    "platform":    "OS X 10.10",
