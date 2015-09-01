@@ -16,6 +16,6 @@
   ],
   "keywords": ["Polymer", "web-components", "form", "html", "ajax"],
   "devDependencies": {
-    "file-input": ">=1.1.4"
+    "file-input": "2.0.0"
   }
 }

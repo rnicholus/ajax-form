@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
 
     <!-- Import dependencies -->
-    <script src="../../webcomponentsjs/webcomponents.min.js"></script>
+    <script src="../../webcomponentsjs/webcomponents-lite.min.js"></script>
     <script src="../node_modules/web-component-tester/browser.js"></script>
     <link rel="import" href="../ajax-form.html">
 </head>
@@ -61,6 +61,10 @@
                 container.innerHTML = formStr;
                 ajaxForm = container.querySelector('form');
 
+                if (spec.mockEventListener) {
+                    sinon.spy(ajaxForm, 'addEventListener');
+                }
+
                 if (spec.headers) {
                     ajaxForm.setAttribute('headers', JSON.stringify(spec.headers));
                 }
@@ -95,17 +99,22 @@
     });
 
     describe('ajax-form method normalization', function () {
-        beforeEach(function () {
-            sinon.spy(EventTarget.prototype, 'addEventListener');
+        beforeEach(function() {
+            window.EventTarget && sinon.spy(EventTarget.prototype, 'addEventListener');
         });
 
         afterEach(function () {
-            EventTarget.prototype.addEventListener.restore();
+            if (window.EventTarget) {
+                EventTarget.prototype.addEventListener.restore();
+            }
+            else {
+                ajaxForm.addEventListener.restore();
+            }
         });
 
         // Ensure 'submit' event is added via addEventListener for post, put, and get methods
         it('adds a listener to squelch submit events', function (done) {
-            createForm({method: 'GET'}, function () {
+            createForm({method: 'GET', mockEventListener: !window.EventTarget}, function () {
                 expect(ajaxForm.addEventListener).to.have.been.calledWith('submit');
                 done();
             });

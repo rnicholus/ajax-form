@@ -3,6 +3,9 @@
             return Array.prototype.slice.call(pseudoArray);
         },
 
+        // Note that _currentScript is a polyfill-specific convention
+        currentScript = document._currentScript || document.currentScript,
+
         fire = function (node, type, _detail_) {
             var detail = _detail_ === null || _detail_ === undefined ? {} : _detail_,
                 event = new CustomEvent(type, {
@@ -50,8 +53,7 @@
             }
         },
 
-        // Note that _currentScript is a polyfill-specific convention
-        importDoc = document._currentScript.ownerDocument,
+        importDoc = currentScript.ownerDocument,
 
         // NOTE: Safari doesn't have any visual indications when submit is blocked
         interceptSubmit = function(ajaxForm) {
@@ -467,10 +469,9 @@
                 value: function () {
                     var templates = importDoc.querySelectorAll('.ajax-form-template'),
                         template = templates[templates.length - 1],
-                        clone = document.importNode(template.content, true),
-                        root = this.createShadowRoot();
+                        clone = document.importNode(template.content, true);
 
-                    root.appendChild(clone);
+                    this.appendChild(clone);
 
                     var ajaxForm = this;
 
