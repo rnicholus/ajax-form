@@ -190,12 +190,8 @@
 
         parseForm = function(form, parseFileInputs) {
             var formObj = {},
-                formElements = form.querySelectorAll('input'),
+                formElements = arrayOf(form.elements),
                 customElementsData = parseCustomElements(form, parseFileInputs);
-
-            formElements = arrayOf(formElements);
-            formElements = formElements.concat(arrayOf(form.querySelectorAll('select')));
-            formElements = formElements.concat(arrayOf(form.querySelectorAll('textarea')));
 
             formElements.forEach(function(formElement) {
                 var key = formElement.name,
@@ -417,7 +413,7 @@
 
         watchForInvalidFields = function (ajaxForm) {
             var config = {attributes: true, childList: true, characterData: false},
-                initialFields = arrayOf(ajaxForm.querySelectorAll(':invalid, :valid')),
+                initialFields = arrayOf(ajaxForm.elements),
                 invalidFields = [],
 
                 listenForInvalidEvent = function (field) {

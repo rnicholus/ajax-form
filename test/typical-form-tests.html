@@ -158,7 +158,7 @@
             createForm({method: 'GET'}, function () {
                 ajaxForm.submit();
 
-                expect(requests[0].url).to.have.string('test1=foobar&test2=&test3=&checkboxgroup=foo&checkboxgroup=bar&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value');
+                expect(requests[0].url).to.have.string('test1=foobar&test2=&test3=&select1=bar&select2=foo&select2=bar&select3=fizz&checkboxgroup=foo&checkboxgroup=bar&ce1name=ce1value');
                 done();
             });
         });
@@ -168,7 +168,7 @@
                 ajaxForm.submit();
 
                 expect(requests[0].requestHeaders['Content-Type']).to.have.string('application/x-www-form-urlencoded');
-                expect(requests[0].requestBody).to.equal('test1=foobar&test2=&test3=&checkboxgroup=foo&checkboxgroup=bar&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value');
+                expect(requests[0].requestBody).to.equal('test1=foobar&test2=&test3=&select1=bar&select2=foo&select2=bar&select3=fizz&checkboxgroup=foo&checkboxgroup=bar&ce1name=ce1value');
                 done();
             });
         });
@@ -182,7 +182,7 @@
                 ajaxForm.querySelector('[name="checkboxname"]').click();
                 ajaxForm.submit();
 
-                expect(requests[0].requestBody).to.equal('test1=foobar&test2=&test3=&checkboxname=checkboxvalue&checkboxgroup=foo&checkboxgroup=bar&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value&customcheckboxname=customcheckboxvalue');
+                expect(requests[0].requestBody).to.equal('test1=foobar&test2=&test3=&select1=bar&select2=foo&select2=bar&select3=fizz&checkboxname=checkboxvalue&checkboxgroup=foo&checkboxgroup=bar&ce1name=ce1value&customcheckboxname=customcheckboxvalue');
                 done();
             });
         });
@@ -215,10 +215,10 @@
                     test1: 'foobar',
                     test2: '',
                     test3: '',
-                    checkboxgroup: [['foo'], ['bar']],
                     select1: ['bar'],
                     select2: ['foo', 'bar'],
                     select3: ['fizz'],
+                    checkboxgroup: [['foo'], ['bar']],
                     ce1name: 'ce1value'
                 }));
                 done();
@@ -253,12 +253,12 @@
                     test1: 'foobar',
                     test2: '',
                     test3: '',
-                    checkboxgroup: ['foo'],
-                    checkboxgroup_series: ['bar'],
                     select1: 'bar',
                     'select2': 'foo',
                     'select2_series': 'bar',
                     select3: 'fizz',
+                    checkboxgroup: ['foo'],
+                    checkboxgroup_series: ['bar'],
                     ce1name: 'ce1value',
                     files: {}
                 }));
@@ -276,12 +276,12 @@
                     test1: 'foobar',
                     test2: '',
                     test3: '',
-                    checkboxgroup: ['foo'],
-                    checkboxgroup_series: ['bar'],
                     select1: 'bar',
                     'select2': 'foo',
                     'select2_series': 'bar',
                     select3: 'fizz',
+                    checkboxgroup: ['foo'],
+                    checkboxgroup_series: ['bar'],
                     ce1name: 'ce1value',
                     files: 'placeholder-file'
                 }));
@@ -299,12 +299,12 @@
                     test1: 'foobar',
                     test2: '',
                     test3: '',
-                    checkboxgroup: ['foo'],
-                    checkboxgroup_series: ['bar'],
                     select1: 'bar',
                     'select2': 'foo',
                     'select2_series': 'bar',
                     select3: 'fizz',
+                    checkboxgroup: ['foo'],
+                    checkboxgroup_series: ['bar'],
                     ce1name: 'ce1value',
                     files: 'placeholder-file1',
                     files_series: 'placeholder-file2'
@@ -332,10 +332,10 @@
                     test1: 'changedval',
                     test2: '',
                     test3: '',
-                    checkboxgroup: [['foo'], ['bar']],
                     select1: ['bar'],
                     select2: ['foo', 'bar'],
                     select3: ['fizz'],
+                    checkboxgroup: [['foo'], ['bar']],
                     ce1name: 'ce1value',
                     newfield: 'newval'
                 }));
@@ -381,7 +381,7 @@
 
                 ajaxForm.submit();
 
-                expect(requests[0].url).to.have.string('test1=changedval&test2=&test3=&checkboxgroup=foo&checkboxgroup=newcbgroupval&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value&newfield=newval');
+                expect(requests[0].url).to.have.string('test1=changedval&test2=&test3=&select1=bar&select2=foo&select2=bar&select3=fizz&checkboxgroup=foo&checkboxgroup=newcbgroupval&ce1name=ce1value&newfield=newval');
                 done();
             });
         });
@@ -395,7 +395,7 @@
 
                 ajaxForm.submit();
 
-                expect(requests[0].requestBody).to.equal('test1=changedval&test2=&test3=&checkboxgroup=foo&checkboxgroup=bar&select1=bar&select2=foo&select2=bar&select3=fizz&ce1name=ce1value&newfield=newval');
+                expect(requests[0].requestBody).to.equal('test1=changedval&test2=&test3=&select1=bar&select2=foo&select2=bar&select3=fizz&checkboxgroup=foo&checkboxgroup=bar&ce1name=ce1value&newfield=newval');
                 done();
             });
         });
