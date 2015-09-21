@@ -2,10 +2,9 @@ language: node_js
 node_js:
 - '0.10'
 before_install:
-- npm install -g grunt-cli
+- npm install
 script:
-- bower install
-- grunt travis
+- $(npm bin)/grunt travis
 env:
   global:
   - secure: rvRcNshNze/8zhMJd3Rhiv+N9u46ljNwAuE6MtpNSaNz+jLC5e7LOXV8dyPdb3ROzDql8SztpMscaEInDvqq+JvC3W0hCYd34WAQt0ZkW0udKs0tbnkNN9dFx1gTfQFsDceTiy1D7d8fQepbeSjOn9N5M1uSUCPdTw5vMFhGFEs=
