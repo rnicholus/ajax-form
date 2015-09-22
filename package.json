@@ -12,7 +12,7 @@
     "grunt-contrib-jshint": "0.10.x",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-shell": "^0.7.0",
-    "web-component-tester": "3.3.17",
+    "web-component-tester": "3.3.22",
     "webcomponents.js": "0.7.2"
   },
   "keywords": ["Polymer", "web-components", "form", "html", "ajax"],
