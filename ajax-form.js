@@ -1,6 +1,6 @@
 (function() {
     var arrayOf = function(pseudoArray) {
-            return Array.prototype.slice.call(pseudoArray);
+            return (pseudoArray && [].slice.call(pseudoArray)) || [];
         },
 
         // Note that _currentScript is a polyfill-specific convention
@@ -154,13 +154,18 @@
             form._fileInputFieldNames = [];
 
             arrayOf(form.querySelectorAll('*[name]')).forEach(function(el) {
-                maybeParseCoreDropdownMenu(el, data) ||
-                maybeParseCustomElementOrFileInput({
-                    customElement: el,
-                    data: data,
-                    form: form,
-                    parseFileInputs: parseFileInputs
-                });
+                if (maybeParseCoreDropdownMenu(el, data) ||
+                      maybeParseCustomElementOrFileInput({
+                        customElement: el,
+                        data: data,
+                        form: form,
+                        parseFileInputs: parseFileInputs
+                      })
+                  ) {
+                    arrayOf(el.querySelectorAll('[name]')).forEach(function(el) {
+                      el.setAttribute('data-ajaxform-ignore', '');
+                    });
+                  }
             });
 
             return data;
@@ -190,8 +195,11 @@
 
         parseForm = function(form, parseFileInputs) {
             var formObj = {},
-                formElements = arrayOf(form.elements),
-                customElementsData = parseCustomElements(form, parseFileInputs);
+                customElementsData = parseCustomElements(form, parseFileInputs),
+                formElements = arrayOf(form.elements).filter(function(el) {
+                  return !el.hasAttribute('data-ajaxform-ignore');
+                });
+
 
             formElements.forEach(function(formElement) {
                 var key = formElement.name,

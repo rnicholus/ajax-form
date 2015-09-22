@@ -21,7 +21,7 @@
                         '<input name="test2" type="text"/>' +
                         '<input name="test3" type="text"/>' +
 
-                        '<my-ce1 id="jsonce" name="ce1name"></my-ce1>' +
+                        '<my-ce1 id="jsonce" name="ce1name"><input name="ce1name"></my-ce1>' +
                         '<my-ce2></my-ce2>' +
 
                         '<select name="select1">' +
@@ -73,7 +73,8 @@
                     ajaxForm.setAttribute('enctype', spec.enctype);
                 }
 
-                ajaxForm.querySelector('[name="ce1name"]').value = 'ce1value';
+                ajaxForm.querySelector('my-ce1[name="ce1name"]').value = 'ce1value';
+                ajaxForm.querySelector('input[name="ce1name"]').value = 'ce1value-input';
                 ajaxForm.querySelector('[name="files"]').files = [];
 
                 document.body.appendChild(container);
