@@ -35,16 +35,16 @@ module.exports = {
                         "version":     ""
                     },
 
+                    // {
+                    //     "browserName": "firefox",
+                    //     "platform":    "Windows 8.1",
+                    //     "version":     ""
+                    // },
                     {
-                        "browserName": "firefox",
-                        "platform":    "Windows 8.1",
-                        "version":     ""
+                       "browserName": "firefox",
+                       "platform":    "Linux",
+                       "version":     ""
                     },
-                    //{
-                    //    "browserName": "firefox",
-                    //    "platform":    "Linux",
-                    //    "version":     "beta"
-                    //},
                     //
                     //{
                     //    "browserName": "safari",
