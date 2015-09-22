@@ -43,7 +43,7 @@ module.exports = {
                     {
                        "browserName": "firefox",
                        "platform":    "Linux",
-                       "version":     ""
+                       "version":     "39"
                     },
                     //
                     //{
