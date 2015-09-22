@@ -27,7 +27,7 @@ module.exports = {
                     {
                         "browserName": "chrome",
                         "platform":    "Windows 8.1",
-                        "version":     "beta"
+                        "version":     ""
                     },
                     {
                         "browserName": "chrome",
