@@ -34,17 +34,21 @@ module.exports = {
                         "platform":    "Linux",
                         "version":     ""
                     },
-
+                    {
+                        "browserName": "firefox",
+                        "platform":    "OS X 10.10",
+                        "version":     "34"
+                    }
                     // {
                     //     "browserName": "firefox",
                     //     "platform":    "Windows 8.1",
                     //     "version":     ""
                     // },
-                    {
-                       "browserName": "firefox",
-                       "platform":    "Linux",
-                       "version":     "39"
-                    },
+                    // {
+                    //    "browserName": "firefox",
+                    //    "platform":    "Linux",
+                    //    "version":     "39"
+                    // },
                     //
                     //{
                     //    "browserName": "safari",
