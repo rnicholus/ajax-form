@@ -2,7 +2,7 @@ module.exports = {
     plugins: {
         local: {
             disabled: true,
-            browsers: ['chrome', 'firefox', 'safari']
+            browsers: ['chrome', 'safari']
         },
         sauce: {
             disabled: true,
@@ -38,7 +38,7 @@ module.exports = {
                         "browserName": "firefox",
                         "platform":    "OS X 10.10",
                         "version":     "34"
-                    }
+                    },
                     // {
                     //     "browserName": "firefox",
                     //     "platform":    "Windows 8.1",
