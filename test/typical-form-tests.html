@@ -420,6 +420,20 @@
             });
         });
     });
+
+    describe('form methods', function () {
+        it('sets request method according to form-parameter', function (done) {
+            var methods = ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'INVALID'];
+
+            methods.forEach(function (method, index) {
+                createForm({method: method});
+                ajaxForm.submit();
+                expect(requests[index].method).to.equal(method !== 'INVALID' ? method : 'GET');
+            });
+
+            done();
+        });
+    });
 </script>
 
 </body>

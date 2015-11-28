@@ -47,7 +47,7 @@
             if (method) {
                 var proposedMethod = method.toUpperCase();
 
-                if (['GET', 'POST', 'PUT', 'PATCH'].indexOf(proposedMethod) >= 0) {
+                if (['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].indexOf(proposedMethod) >= 0) {
                     return proposedMethod;
                 }
             }
