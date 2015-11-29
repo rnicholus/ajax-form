@@ -420,6 +420,48 @@
             });
         });
     });
+
+    describe('sets request method according to form-parameter', function () {
+        it('supports GET requests', function (done) {
+            createForm({method: 'GET'}, function() {
+                ajaxForm.submit();
+                expect(requests[0].method).to.equal('GET');
+                done();
+            });
+        });
+
+        it('supports POST requests', function (done) {
+            createForm({method: 'POST'}, function() {
+                ajaxForm.submit();
+                expect(requests[0].method).to.equal('POST');
+                done();
+            });
+        });
+
+        it('supports PATCH requests', function (done) {
+            createForm({method: 'PATCH'}, function() {
+                ajaxForm.submit();
+                expect(requests[0].method).to.equal('PATCH');
+                done();
+            });
+        });
+
+        it('supports DELETE requests', function (done) {
+            createForm({method: 'DELETE'}, function() {
+                ajaxForm.submit();
+                expect(requests[0].method).to.equal('DELETE');
+                done();
+            });
+        });
+
+        it('falls back to GET', function (done) {
+            createForm({method: 'FOOBAR'}, function() {
+                ajaxForm.submit();
+                expect(requests[0].method).to.equal('GET');
+                done();
+            });
+        });
+    });
 </script>
 
 </body>
