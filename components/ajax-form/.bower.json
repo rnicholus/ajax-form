@@ -25,11 +25,11 @@
     "webcomponentsjs": "0.7.12"
   },
   "homepage": "https://github.com/rnicholus/ajax-form",
-  "_release": "f3df87ee4d",
+  "_release": "08afbe65fb",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "f3df87ee4d6dd2f6b7f17dc165f22409e98d7a52"
+    "commit": "08afbe65fb358cbed7b3175ac02d714d6306fd03"
   },
   "_source": "git://github.com/rnicholus/ajax-form.git",
   "_target": "master",
