@@ -1,6 +1,6 @@
 (function() {
     var arrayOf = function(pseudoArray) {
-            return Array.prototype.slice.call(pseudoArray);
+            return (pseudoArray && [].slice.call(pseudoArray)) || [];
         },
 
         // Note that _currentScript is a polyfill-specific convention
@@ -154,13 +154,18 @@
             form._fileInputFieldNames = [];
 
             arrayOf(form.querySelectorAll('*[name]')).forEach(function(el) {
-                maybeParseCoreDropdownMenu(el, data) ||
-                maybeParseCustomElementOrFileInput({
-                    customElement: el,
-                    data: data,
-                    form: form,
-                    parseFileInputs: parseFileInputs
-                });
+                if (maybeParseCoreDropdownMenu(el, data) ||
+                      maybeParseCustomElementOrFileInput({
+                        customElement: el,
+                        data: data,
+                        form: form,
+                        parseFileInputs: parseFileInputs
+                      })
+                  ) {
+                    arrayOf(el.querySelectorAll('[name]')).forEach(function(el) {
+                      el.setAttribute('data-ajaxform-ignore', '');
+                    });
+                  }
             });
 
             return data;
@@ -190,12 +195,11 @@
 
         parseForm = function(form, parseFileInputs) {
             var formObj = {},
-                formElements = form.querySelectorAll('input'),
-                customElementsData = parseCustomElements(form, parseFileInputs);
+                customElementsData = parseCustomElements(form, parseFileInputs),
+                formElements = arrayOf(form.elements).filter(function(el) {
+                  return !el.hasAttribute('data-ajaxform-ignore');
+                });
 
-            formElements = arrayOf(formElements);
-            formElements = formElements.concat(arrayOf(form.querySelectorAll('select')));
-            formElements = formElements.concat(arrayOf(form.querySelectorAll('textarea')));
 
             formElements.forEach(function(formElement) {
                 var key = formElement.name,
@@ -417,7 +421,7 @@
 
         watchForInvalidFields = function (ajaxForm) {
             var config = {attributes: true, childList: true, characterData: false},
-                initialFields = arrayOf(ajaxForm.querySelectorAll(':invalid, :valid')),
+                initialFields = arrayOf(ajaxForm.elements),
                 invalidFields = [],
 
                 listenForInvalidEvent = function (field) {

@@ -2,7 +2,7 @@ module.exports = {
     plugins: {
         local: {
             disabled: true,
-            browsers: ['chrome', 'firefox', 'safari']
+            browsers: ['chrome', 'safari']
         },
         sauce: {
             disabled: true,
@@ -27,24 +27,28 @@ module.exports = {
                     {
                         "browserName": "chrome",
                         "platform":    "Windows 8.1",
-                        "version":     "beta"
+                        "version":     ""
                     },
                     {
                         "browserName": "chrome",
                         "platform":    "Linux",
                         "version":     ""
                     },
-
                     {
                         "browserName": "firefox",
-                        "platform":    "Windows 8.1",
-                        "version":     ""
+                        "platform":    "OS X 10.10",
+                        "version":     "37"
                     },
-                    //{
+                    // {
+                    //     "browserName": "firefox",
+                    //     "platform":    "Windows 8.1",
+                    //     "version":     ""
+                    // },
+                    // {
                     //    "browserName": "firefox",
                     //    "platform":    "Linux",
-                    //    "version":     "beta"
-                    //},
+                    //    "version":     "39"
+                    // },
                     //
                     //{
                     //    "browserName": "safari",
