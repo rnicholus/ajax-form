@@ -36,8 +36,8 @@ module.exports = {
                     },
                     {
                         "browserName": "firefox",
-                        "platform":    "OS X 10.10",
-                        "version":     "37"
+                        "platform":    "OS X 10.9",
+                        "version":     "40"
                     },
                     // {
                     //     "browserName": "firefox",
