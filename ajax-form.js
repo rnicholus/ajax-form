@@ -38,7 +38,7 @@
         }()),
 
         getEnctype = function(ajaxForm) {
-            var enctype = ajaxForm.getAttribute('enctype');
+            var enctype = ajaxForm._enctypeOverride || ajaxForm.getAttribute('enctype');
 
             return enctype || 'application/x-www-form-urlencoded';
         },
@@ -59,6 +59,8 @@
         interceptSubmit = function(ajaxForm) {
             // Intercept submit event
             ajaxForm.addEventListener('submit', function(event) {
+                resetFormOverrides(ajaxForm);
+
                 // Stop form submission.  Believe it or not,
                 // both of these are required for some reason,
                 // and returning false doesn't seem to reliably work.
@@ -67,6 +69,7 @@
 
                 // respect any field validation attributes
                 if (ajaxForm.checkValidity()) {
+                    maybeOverrideFormAttributes(ajaxForm, document.activeElement);
                     sendFormData(ajaxForm);
                 }
             });
@@ -79,6 +82,8 @@
             fakeSubmitEl.style.display = 'none';
             ajaxForm.appendChild(fakeSubmitEl);
             ajaxForm.submit = function() {
+                resetFormOverrides(ajaxForm);
+
                 ajaxForm._preventValidityCheck = false;
                 if (ajaxForm.checkValidity()) {
                     fire(ajaxForm, 'submit');
@@ -98,6 +103,34 @@
                 role === 'checkbox' ||
                 elementType === 'radio' ||
                 role === 'radio';
+        },
+
+        maybeOverrideFormAttributes = function(form, submittingElement) {
+            var submittingTagName = submittingElement.tagName.toLowerCase(),
+                buttonThatSubmittedForm;
+
+            if (submittingTagName !== 'form') {
+                if ( (submittingTagName === 'input' && submittingElement.type === 'submit')
+                        || submittingTagName === 'button') {
+
+                    buttonThatSubmittedForm = submittingElement;
+                }
+                else if (submittingTagName === 'input') {
+                    buttonThatSubmittedForm = form.querySelector('input[type="submit"], button');
+                }
+
+                if (buttonThatSubmittedForm) {
+                    if (buttonThatSubmittedForm.hasAttribute('formaction')) {
+                        form._actionOverride = buttonThatSubmittedForm.getAttribute('formaction');
+                    }
+                    if (buttonThatSubmittedForm.hasAttribute('formmethod')) {
+                        form._methodOverride = buttonThatSubmittedForm.getAttribute('formmethod');
+                    }
+                    if (buttonThatSubmittedForm.hasAttribute('formenctype')) {
+                        form._enctypeOverride = buttonThatSubmittedForm.getAttribute('formenctype');
+                    }
+                }
+            }
         },
 
         maybeParseCoreDropdownMenu = function(customElement, data) {
@@ -281,6 +314,12 @@
             }
         },
 
+        resetFormOverrides = function(ajaxForm) {
+            ajaxForm._actionOverride = null;
+            ajaxForm._methodOverride = null;
+            ajaxForm._enctypeOverride = null;
+        },
+
         sendFormData = function(ajaxForm) {
             var enctype = getEnctype(ajaxForm),
                 formData = parseForm(ajaxForm, enctype === 'multipart/form-data'),
@@ -355,7 +394,7 @@
             var xhr = new XMLHttpRequest(),
                 customHeaders = options.form.getAttribute('headers');
 
-            xhr.open(options.form.acceptableMethod, options.url || options.form.action);
+            xhr.open(options.form.acceptableMethod, options.url || options.form._actionOverride || options.form.action);
 
             xhr.withCredentials = !!options.form.cookies;
 
@@ -381,7 +420,8 @@
         },
 
         sendUrlencodedForm = function(ajaxForm, formData) {
-            var data = toQueryString(formData);
+            var data = toQueryString(formData),
+                action = ajaxForm._actionOverride || ajax.action;
 
             if (ajaxForm.acceptableMethod === 'POST') {
                 sendRequest({
@@ -391,10 +431,11 @@
                 });
             }
             else {
+
                 sendRequest({
                     contentType: getEnctype(ajaxForm),
                     form: ajaxForm,
-                    url: ajaxForm.action + (ajaxForm.action.indexOf('?') > 0 ? '&' : '?') + data
+                    url: action + (action.indexOf('?') > 0 ? '&' : '?') + data
                 });
             }
         },
@@ -485,7 +526,7 @@
                     // we are extending a form and a "natural" form also has a
                     // method attr?  Perhaps something special about this attr?
                     // Need to look into this further.
-                    ajaxForm.acceptableMethod = getValidMethod(ajaxForm.getAttribute('method'));
+                    ajaxForm.acceptableMethod = getValidMethod(ajaxForm._methodOverride || ajaxForm.getAttribute('method'));
 
                     // default method is GET
                     ajaxForm.acceptableMethod = ajaxForm.acceptableMethod || 'GET';
