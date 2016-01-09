@@ -110,8 +110,8 @@
                 buttonThatSubmittedForm;
 
             if (submittingTagName !== 'form') {
-                if ( (submittingTagName === 'input' && submittingElement.type === 'submit')
-                        || submittingTagName === 'button') {
+                if ( (submittingTagName === 'input' && submittingElement.type === 'submit') ||
+                        submittingTagName === 'button') {
 
                     buttonThatSubmittedForm = submittingElement;
                 }
@@ -421,7 +421,7 @@
 
         sendUrlencodedForm = function(ajaxForm, formData) {
             var data = toQueryString(formData),
-                action = ajaxForm._actionOverride || ajax.action;
+                action = ajaxForm._actionOverride || ajaxForm.action;
 
             if (ajaxForm.acceptableMethod === 'POST') {
                 sendRequest({
