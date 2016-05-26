@@ -420,7 +420,7 @@
           },
 
         watchForInvalidFields = function (ajaxForm) {
-            var config = {attributes: true, childList: true, characterData: false},
+            var config = {attributes: true, childList: true, characterData: false, subtree: true},
                 initialFields = arrayOf(ajaxForm.elements),
                 invalidFields = [],
 
