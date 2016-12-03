@@ -1,24 +1,9 @@
 ajax-form
 =========
 
-HTML forms on performance-enhancing drugs.
+HTML forms on performance-enhancing drugs
 
 [![Build Status](https://travis-ci.org/rnicholus/ajax-form.svg?branch=master)](https://travis-ci.org/rnicholus/ajax-form)
-[![npm](https://img.shields.io/npm/v/ajax-form.svg)](https://www.npmjs.com/package/ajax-form)
-[![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
-
-**Note: Ajax-form is not tied to Polymer. In fact, it has no dependencies at all, but should work just fine with Polymer or any other custom elements library. If you prefer to use a simple custom elements polyfill, ajax-form is also your best choice.**
-
-## What's wrong with a traditional `<form>`?
-1. Form submission changes/reloads the page, and it's not trivial to properly prevent this.
-2. You can't send custom headers with a submitted form.
-3. You can't (easily) parse the server response after a form is submitted.
-4. Programmatically tracking invalid forms/fields is frustrating.
-5. You can't send form data as JSON.
-6. You have no opportunity to programmatically augment user-entered data before it is sent to the server.
-7. Custom form elements (such as those created using the web components spec) cannot be submitted using a traditional unadulterated `<form>`.
-
-The `ajax-form` custom element augments a traditional `<form>` to provide additional features and solve the problems listed above. See the [API documentation page](http://ajax-form.raynicholus.com) for complete documentation and demos.
 
 ## What's wrong with a traditional `<form>`?
 1. Form submission changes/reloads the page, and it's not trivial to properly prevent this.

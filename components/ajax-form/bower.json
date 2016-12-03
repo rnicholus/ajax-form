@@ -1,26 +1,3 @@
 {
-  "name": "ajax-form",
-  "description": "HTML forms on performance-enhancing drugs",
-  "main": "ajax-form.js",
-  "authors": [
-    "Ray Nicholus"
-  ],
-  "license": "MIT",
-  "keywords": [
-    "Polymer",
-    "web-components",
-    "form",
-    "html",
-    "ajax"
-  ],
-  "homepage": "https://github.com/rnicholus/ajax-form",
-  "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "../",
-    "test",
-    "tests"
-  ]
->>>>>>> update demo after 2.1.4 release
+  "version": "2.1.3"
 }

@@ -57,8 +57,8 @@ module.exports = {
                     //},
                     {
                         "browserName": "safari",
-                        "platform":    "OS X 10.11",
-                        "version":     "9"
+                        "platform":    "OS X 10.9",
+                        "version":     "7"
                     }
                 ]
         }
