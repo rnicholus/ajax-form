@@ -1,9 +1,13 @@
 ajax-form
 =========
 
-HTML forms on performance-enhancing drugs
+HTML forms on performance-enhancing drugs.
 
 [![Build Status](https://travis-ci.org/rnicholus/ajax-form.svg?branch=master)](https://travis-ci.org/rnicholus/ajax-form)
+[![npm](https://img.shields.io/npm/v/ajax-form.svg)](https://www.npmjs.com/package/ajax-form)
+[![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
+
+**Note: Ajax-form is not tied to Polymer. In fact, it has no dependencies at all, but should work just fine with Polymer or any other custom elements library. If you prefer to use a simple custom elements polyfill, ajax-form is also your best choice.**
 
 ## What's wrong with a traditional `<form>`?
 1. Form submission changes/reloads the page, and it's not trivial to properly prevent this.
