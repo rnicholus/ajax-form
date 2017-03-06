@@ -103,8 +103,8 @@
         maybeParseCoreDropdownMenu = function(customElement, data) {
             if (customElement.tagName.toLowerCase() === 'core-dropdown-menu' ||
                 customElement.tagName.toLowerCase() === 'paper-dropdown-menu') {
-                var coreMenu = customElement.querySelector('core-menu'),
-                    selectedItem = coreMenu && coreMenu.selectedItem;
+                var menuContainer = customElement.querySelector('core-menu,paper-menu,paper-list-box'),
+                    selectedItem = menuContainer && menuContainer.selectedItem;
 
                 if (selectedItem) {
                     processFormValue(customElement.getAttribute('name'), selectedItem.label || selectedItem.textContent, data);
