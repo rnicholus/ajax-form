@@ -494,6 +494,14 @@
                     interceptSubmit(ajaxForm);
                     fire(ajaxForm, 'ready');
                 }
+            },
+            attributeChangedCallback: {
+                value: function(attr, oldValue, newValue) {
+                    var ajaxForm = this;
+                    if (attr.toLowerCase() === 'method') {
+                        ajaxForm.acceptableMethod = getValidMethod(newValue) || ajaxForm.acceptableMethod;
+                    }
+                }
             }
         })
     });
