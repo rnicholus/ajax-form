@@ -463,6 +463,36 @@
             });
         });
     });
+
+    describe('changes request method if changed after instantiation', function() {
+        it('sets it to another valid method', function (done) {
+            createForm({method: 'GET'}, function() {
+                ajaxForm.method = 'POST';
+                ajaxForm.submit();
+                expect(requests[0].method).to.equal('POST');
+                done();
+            });
+        });
+
+        it('changes if the attribute name is different case', function (done) {
+            createForm({method: 'GET'}, function() {
+                ajaxForm.METHOD = 'PUT';
+                ajaxForm.submit();
+                expect(requests[0].method).to.equal('PUT');
+                done();
+            });
+        });
+
+        it('falls back to the old method if the new one is invalid', function (done) {
+            createForm({method: 'POST'}, function() {
+                ajaxForm.method = 'BAR';
+                ajaxForm.submit();
+                expect(requests[0].method).to.equal('POST');
+                done();
+            });
+        });
+
+    });
 </script>
 
 </body>
