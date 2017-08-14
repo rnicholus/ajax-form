@@ -378,6 +378,8 @@
             };
 
             xhr.send(options.body);
+
+            fire(options.form, 'abortable', function() { xhr.abort(); });
         },
 
         sendUrlencodedForm = function(ajaxForm, formData) {
